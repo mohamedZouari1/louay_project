@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, CampusLocation, Event, Report, Favorite, CampusStat
+from .models import UserProfile, CampusLocation, Event, Report, Favorite, CampusStat, Post, PostLike, UserFollow
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['university', 'student_id', 'joined_date']
+        fields = ['university', 'student_id', 'joined_date', 'bio', 'avatar_color', 'role']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,10 +42,14 @@ class RegisterSerializer(serializers.Serializer):
         )
 
         import random
+        # Generate a pleasant avatar color from a curated palette
+        colors = ['#1A237E', '#00695C', '#4527A0', '#1565C0', '#BF360C', '#283593', '#558B2F', '#6A1B9A']
         UserProfile.objects.create(
             user=user,
             university=validated_data['university'],
             student_id=f'ST{random.randint(1000, 9999)}',
+            avatar_color=random.choice(colors),
+            role='student',
         )
 
         return user
@@ -88,3 +92,72 @@ class CampusStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = CampusStat
         fields = '__all__'
+
+
+# ──────────────────────────────────────────
+#  Social Hub Serializers
+# ──────────────────────────────────────────
+
+class PostAuthorSerializer(serializers.ModelSerializer):
+    """Lightweight author info embedded in every post."""
+    role = serializers.CharField(source='profile.role', default='student')
+    university = serializers.CharField(source='profile.university', default='')
+    avatar_color = serializers.CharField(source='profile.avatar_color', default='#1A237E')
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'role', 'university', 'avatar_color']
+
+
+class PostSerializer(serializers.ModelSerializer):
+    author = PostAuthorSerializer(read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    is_liked_by_me = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = [
+            'id', 'author', 'content', 'image_url',
+            'post_type', 'likes_count', 'is_liked_by_me', 'created_at',
+        ]
+        read_only_fields = ['post_type', 'created_at']
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_is_liked_by_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return PostLike.objects.filter(user=request.user, post=obj).exists()
+        return False
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    """Public-facing user card for the Search tab."""
+    role = serializers.CharField(source='profile.role', default='student')
+    university = serializers.CharField(source='profile.university', default='')
+    avatar_color = serializers.CharField(source='profile.avatar_color', default='#1A237E')
+    bio = serializers.CharField(source='profile.bio', default='')
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'first_name', 'last_name',
+            'role', 'university', 'avatar_color', 'bio',
+            'followers_count', 'following_count',
+        ]
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_following_count(self, obj):
+        return obj.following.count()

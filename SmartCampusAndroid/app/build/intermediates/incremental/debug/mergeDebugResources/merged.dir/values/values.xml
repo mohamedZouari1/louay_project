@@ -2057,6 +2057,7 @@
     <string name="androidx_startup" translatable="false">androidx.startup</string>
     <string name="app_name">Smart Campus</string>
     <string name="appbar_scrolling_view_behavior" translatable="false">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+    <string name="attach_photo">Attach Photo</string>
     <string name="bottom_sheet_behavior" translatable="false">com.google.android.material.bottomsheet.BottomSheetBehavior</string>
     <string description="A description of an accessibility action to collapse the bottom sheet [CHAR LIMIT=NONE]" name="bottomsheet_action_collapse">Collapse the bottom sheet</string>
     <string description="A description of an accessibility action to expand the bottom sheet [CHAR LIMIT=NONE]" name="bottomsheet_action_expand">Expand the bottom sheet</string>
@@ -2073,10 +2074,12 @@
     <string name="campus_map">Campus Map</string>
     <string name="campus_stats_title">Campus Statistics 2024–2025</string>
     <string name="cancel">Cancel</string>
+    <string name="change_photo">Change Photo</string>
     <string name="character_counter_content_description">Characters entered %1$d of %2$d</string>
     <string name="character_counter_overflowed_content_description">Character limit exceeded %1$d of %2$d</string>
     <string name="character_counter_pattern" translatable="false">%1$d/%2$d</string>
     <string name="clear_text_end_icon_content_description">Clear text</string>
+    <string name="compose_hint">What\'s on your mind?</string>
     <string name="confirm_password_hint">Confirm Password</string>
     <string name="create_account">Create Account</string>
     <string name="creating_account">Creating Account…</string>
@@ -2099,6 +2102,8 @@
     <string name="fab_transformation_scrim_behavior" translatable="false">com.google.android.material.transformation.FabTransformationScrimBehavior</string>
     <string name="fab_transformation_sheet_behavior" translatable="false">com.google.android.material.transformation.FabTransformationSheetBehavior</string>
     <string name="favorites">Favorites</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="full_name_hint">Full Name</string>
     <string name="get_started">Get Started</string>
@@ -2113,6 +2118,10 @@
     <string name="issue_type">Issue Type</string>
     <string name="item_view_role_description">Tab</string>
     <string name="join_smart_campus">Join Smart Campus today</string>
+    <string name="just_now">Just now</string>
+    <string name="like">Like</string>
+    <string name="liked">Liked</string>
+    <string name="loading">Loading…</string>
     <string name="location_hint">Building or area where the issue occurred</string>
     <string name="location_optional">Location (Optional)</string>
     <string name="logging_in">Logging in…</string>
@@ -2232,8 +2241,11 @@
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_map">Map</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_social">Social</string>
     <string name="next">Next</string>
     <string name="no_account">Don\'t have an account? </string>
+    <string name="no_posts_yet">No posts yet. Be the first to share!</string>
+    <string name="no_results">No users found</string>
     <string name="onboarding_desc_1">Your digital guide to University of Manouba</string>
     <string name="onboarding_desc_2">Explore universities, restaurants, cafés, and more</string>
     <string name="onboarding_desc_3">Access campus events, statistics, and resources</string>
@@ -2247,10 +2259,20 @@
     <string name="path_password_eye_mask_strike_through" translatable="false">M2,4.27 L19.73,22 L22.27,19.46 L4.54,1.73 L4.54,1 L23,1 L23,23 L1,23 L1,4.27 Z</string>
     <string name="path_password_eye_mask_visible" translatable="false">M2,4.27 L2,4.27 L4.54,1.73 L4.54,1.73 L4.54,1 L23,1 L23,23 L1,23 L1,4.27 Z</string>
     <string name="path_password_strike_through" translatable="false">M3.27,4.27 L19.74,20.74</string>
+    <string name="photo_removed">Photo removed</string>
+    <string name="post_error">Could not publish post. Try again.</string>
+    <string name="post_published">Post published!</string>
+    <string name="posts">Posts</string>
+    <string name="publish">Publish</string>
+    <string name="publishing">Publishing…</string>
     <string name="quick_actions">Quick Actions</string>
     <string name="report_issue">Report Issue</string>
     <string name="report_success">Thank you for your report! We will address this issue as soon as possible.</string>
+    <string name="role_admin">Administration</string>
+    <string name="role_org">Organization</string>
+    <string name="role_student">Student</string>
     <string name="search_menu_title">Search</string>
+    <string name="search_users_hint">Search by name or university…</string>
     <string name="searchbar_scrolling_view_behavior" translatable="false">
     com.google.android.material.search.SearchBar$ScrollingViewBehavior
   </string>
@@ -2264,8 +2286,13 @@
     <string name="side_sheet_behavior" translatable="false">com.google.android.material.sidesheet.SideSheetBehavior</string>
     <string name="sign_up">Sign Up</string>
     <string name="skip">Skip</string>
+    <string name="social_hub">Social Hub</string>
+    <string name="social_hub_subtitle">Connect with your campus community</string>
     <string name="status_bar_notification_info_overflow">999+</string>
     <string name="student">Student</string>
+    <string name="tab_feed">For You</string>
+    <string name="tab_post">Post</string>
+    <string name="tab_search">Search</string>
     <string name="uni_ensi">ENSI - National School of Computer Science</string>
     <string name="uni_esct">ESCT - Higher School of Commerce of Tunis</string>
     <string name="uni_esen">ESEN - Higher School of Digital Economy</string>
@@ -2276,6 +2303,7 @@
     <string name="uni_isd">ISD - Higher Institute of Documentation</string>
     <string name="uni_other">Other</string>
     <string name="university_name">University of Manouba</string>
+    <string name="view_profile">View Profile</string>
     <string name="welcome_back">Welcome Back!</string>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
     <style name="AlertDialog.AppCompat.Light" parent="Base.AlertDialog.AppCompat.Light"/>

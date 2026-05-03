@@ -18,9 +18,30 @@
         tools:layout="@layout/fragment_map" />
 
     <fragment
+        android:id="@+id/socialHubFragment"
+        android:name="com.smartcampus.manouba.fragments.SocialHubFragment"
+        android:label="Social Hub"
+        tools:layout="@layout/fragment_social_hub" />
+
+    <fragment
         android:id="@+id/profileFragment"
         android:name="com.smartcampus.manouba.fragments.ProfileFragment"
         android:label="My Profile"
         tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/profileDetailFragment"
+        android:name="com.smartcampus.manouba.fragments.ProfileDetailFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile_detail">
+        <argument
+            android:name="userId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="userName"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
 </navigation>

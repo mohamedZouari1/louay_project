@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+build/
+.gradle/
+local.properties
+.idea/
+*.dex
+*.jar
+*.apk
+*.class

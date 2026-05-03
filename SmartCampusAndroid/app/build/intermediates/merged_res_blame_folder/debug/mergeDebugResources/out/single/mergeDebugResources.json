@@ -8,6 +8,10 @@
         "source": "com.smartcampus.manouba.app-main-49:/drawable/flah.jpg"
     },
     {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_item_user_search.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/item_user_search.xml"
+    },
+    {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_bg_button_primary.xml.flat",
         "source": "com.smartcampus.manouba.app-main-49:/drawable/bg_button_primary.xml"
     },
@@ -38,6 +42,10 @@
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/anim_slide_out_left.xml.flat",
         "source": "com.smartcampus.manouba.app-main-49:/anim/slide_out_left.xml"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_search_users.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_search_users.xml"
     },
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_map.xml.flat",
@@ -116,6 +124,10 @@
         "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_register.xml"
     },
     {
+        "merged": "com.smartcampus.manouba.app-debug-47:/drawable_gradient_header.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/drawable/gradient_header.xml"
+    },
+    {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_rectorat_image.jpg.flat",
         "source": "com.smartcampus.manouba.app-main-49:/drawable/rectorat_image.jpg"
     },
@@ -130,6 +142,10 @@
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_gradient_bottom_fade.xml.flat",
         "source": "com.smartcampus.manouba.app-main-49:/drawable/gradient_bottom_fade.xml"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_compose_post.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_compose_post.xml"
     },
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_centre_de_publication.png.flat",
@@ -168,6 +184,10 @@
         "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_login.xml"
     },
     {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_feed.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_feed.xml"
+    },
+    {
         "merged": "com.smartcampus.manouba.app-debug-47:/layout_dialog_about_campus.xml.flat",
         "source": "com.smartcampus.manouba.app-main-49:/layout/dialog_about_campus.xml"
     },
@@ -184,6 +204,10 @@
         "source": "com.smartcampus.manouba.app-main-49:/drawable/bg_input_field.xml"
     },
     {
+        "merged": "com.smartcampus.manouba.app-debug-47:/drawable_bg_chip_admin.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/drawable/bg_chip_admin.xml"
+    },
+    {
         "merged": "com.smartcampus.manouba.app-debug-47:/anim_fade_out.xml.flat",
         "source": "com.smartcampus.manouba.app-main-49:/anim/fade_out.xml"
     },
@@ -192,8 +216,16 @@
         "source": "com.smartcampus.manouba.app-main-49:/drawable/ic_launcher_background.xml"
     },
     {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_profile_detail.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_profile_detail.xml"
+    },
+    {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_isamm.png.flat",
         "source": "com.smartcampus.manouba.app-main-49:/drawable/isamm.png"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_item_post_card.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/item_post_card.xml"
     },
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/anim_slide_in_right.xml.flat",
@@ -214,6 +246,10 @@
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/mipmap-xhdpi_ic_launcher.png.flat",
         "source": "com.smartcampus.manouba.app-main-49:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_social_hub.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_social_hub.xml"
     },
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/layout_fragment_profile.xml.flat",
@@ -238,6 +274,10 @@
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_symposium.gif.flat",
         "source": "com.smartcampus.manouba.app-main-49:/drawable/symposium.gif"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-47:/drawable_bg_avatar_circle_large.xml.flat",
+        "source": "com.smartcampus.manouba.app-main-49:/drawable/bg_avatar_circle_large.xml"
     },
     {
         "merged": "com.smartcampus.manouba.app-debug-47:/drawable_bg_avatar_circle.xml.flat",

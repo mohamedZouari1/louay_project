@@ -4,7 +4,7 @@
             "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-45:/values-watch-v21/values-watch-v21.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\2d0fb8781f2609c838ef3ce8332ca072\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
+                    "source": "C:\\Users\\Admin\\.gradle\\caches\\8.10.2\\transforms\\6bcd7a7c49686eb8e7c4beb552b1a37f\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
                     "from": {
                         "startLines": "2,6,10",
                         "startColumns": "4,4,4",

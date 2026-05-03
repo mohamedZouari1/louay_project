@@ -15,13 +15,23 @@ class UserProfile(models.Model):
         ('OTHER', 'Other'),
     ]
 
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('org', 'Organization'),
+        ('admin', 'Administration'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     university = models.CharField(max_length=10, choices=UNIVERSITY_CHOICES, default='ENSI')
     student_id = models.CharField(max_length=20, blank=True)
     joined_date = models.DateTimeField(auto_now_add=True)
+    # Social Hub additions
+    bio = models.TextField(blank=True, default='')
+    avatar_color = models.CharField(max_length=7, default='#1A237E')  # hex color
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
 
     def __str__(self):
-        return f"{self.user.username} - {self.university}"
+        return f"{self.user.username} - {self.university} ({self.role})"
 
 
 class CampusLocation(models.Model):
@@ -130,3 +140,64 @@ class CampusStat(models.Model):
 
     def __str__(self):
         return f"{self.label}: {self.value}"
+
+
+# ──────────────────────────────────────────
+#  Social Hub Models
+# ──────────────────────────────────────────
+
+class Post(models.Model):
+    POST_TYPE_CHOICES = [
+        ('student', 'Student'),
+        ('org', 'Organization'),
+        ('admin', 'Administration'),
+    ]
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    content = models.TextField()
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    # post_type is automatically set from author's role on save
+    post_type = models.CharField(max_length=10, choices=POST_TYPE_CHOICES, default='student')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        # Always derive post_type from the author's verified role
+        try:
+            self.post_type = self.author.profile.role
+        except Exception:
+            self.post_type = 'student'
+        super().save(*args, **kwargs)
+
+    @property
+    def likes_count(self):
+        return self.likes.count()
+
+    def __str__(self):
+        return f"[{self.post_type}] {self.author.username}: {self.content[:50]}"
+
+
+class PostLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_likes')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'post')
+
+    def __str__(self):
+        return f"{self.user.username} liked post #{self.post.id}"
+
+
+class UserFollow(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"

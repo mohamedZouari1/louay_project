@@ -1,16 +1,19 @@
-from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.db.models import Q
 
-from .models import CampusLocation, Event, Report, Favorite, CampusStat
+from .models import CampusLocation, Event, Report, Favorite, CampusStat, Post, PostLike, UserFollow
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     CampusLocationSerializer, EventSerializer, ReportSerializer,
-    FavoriteSerializer, CampusStatSerializer
+    FavoriteSerializer, CampusStatSerializer,
+    PostSerializer, UserSearchSerializer,
 )
 
 
@@ -35,7 +38,6 @@ def login_view(request):
     if serializer.is_valid():
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
-
         try:
             user_obj = User.objects.get(email=email)
             user = authenticate(username=user_obj.username, password=password)
@@ -48,10 +50,7 @@ def login_view(request):
                 'token': token.key,
                 'user': UserSerializer(user).data,
             })
-        return Response(
-            {'error': 'Invalid credentials'},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -77,7 +76,11 @@ def profile_view(request):
         profile = user.profile
         if 'university' in request.data:
             profile.university = request.data['university']
-            profile.save()
+        if 'bio' in request.data:
+            profile.bio = request.data['bio']
+        if 'avatar_color' in request.data:
+            profile.avatar_color = request.data['avatar_color']
+        profile.save()
 
         return Response(UserSerializer(user).data)
 
@@ -150,3 +153,95 @@ def favorite_delete_view(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Favorite.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+# ──────────────────────────────────────────
+#  Social Hub Views
+# ──────────────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def social_feed_view(request):
+    """Return the latest 30 posts from all users, newest first."""
+    posts = Post.objects.select_related('author', 'author__profile').all()[:30]
+    serializer = PostSerializer(posts, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
+def social_create_post_view(request):
+    """Create a new post. post_type is auto-set from the author's verified role."""
+    content = request.data.get('content', '').strip()
+    if not content:
+        return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    post = Post(author=request.user, content=content)
+    if 'image' in request.FILES:
+        post.image = request.FILES['image']
+    post.save()  # save() auto-sets post_type from author.profile.role
+
+    serializer = PostSerializer(post, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def social_like_post_view(request, pk):
+    """POST to like, DELETE to unlike."""
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({'error': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+        like, created = PostLike.objects.get_or_create(user=request.user, post=post)
+        return Response({
+            'liked': True,
+            'likes_count': post.likes.count(),
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    elif request.method == 'DELETE':
+        PostLike.objects.filter(user=request.user, post=post).delete()
+        return Response({
+            'liked': False,
+            'likes_count': post.likes.count(),
+        }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def social_search_users_view(request):
+    """Search users by name or university. ?q=<query>"""
+    q = request.query_params.get('q', '').strip()
+    if len(q) < 2:
+        return Response([])
+
+    users = User.objects.filter(
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q) |
+        Q(profile__university__icontains=q)
+    ).exclude(id=request.user.id).select_related('profile')[:20]
+
+    serializer = UserSearchSerializer(users, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def social_public_profile_view(request, pk):
+    """Get any user's public profile and their last 10 posts."""
+    try:
+        user = User.objects.select_related('profile').get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    user_data = UserSearchSerializer(user, context={'request': request}).data
+    posts = Post.objects.filter(author=user).order_by('-created_at')[:10]
+    posts_data = PostSerializer(posts, many=True, context={'request': request}).data
+
+    return Response({
+        'user': user_data,
+        'posts': posts_data,
+    })

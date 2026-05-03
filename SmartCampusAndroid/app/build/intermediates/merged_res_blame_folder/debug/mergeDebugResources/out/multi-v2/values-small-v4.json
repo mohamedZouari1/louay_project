@@ -4,7 +4,7 @@
             "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-45:/values-small-v4/values-small-v4.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\5077d74a784d888a1ad8d517763ca918\\transformed\\material-1.11.0\\res\\values-small-v4\\values-small-v4.xml",
+                    "source": "C:\\Users\\Admin\\.gradle\\caches\\8.10.2\\transforms\\81885983726ce49cff5feee8b2b568dd\\transformed\\material-1.11.0\\res\\values-small-v4\\values-small-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",

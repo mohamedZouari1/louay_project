@@ -1,3 +1,1 @@
-plugins {
-    id("com.android.application") version "8.7.0" apply false
-}
+// Deactivated: Using root build.gradle.kts instead

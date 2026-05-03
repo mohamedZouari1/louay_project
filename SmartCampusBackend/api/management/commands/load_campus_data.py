@@ -1,15 +1,32 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import User
 from api.models import CampusLocation, Event, CampusStat
 
-
 class Command(BaseCommand):
-    help = 'Load initial campus data (locations, events, stats)'
+    help = 'Load initial campus data and create default admin'
 
     def handle(self, *args, **options):
+        self.create_default_admin()
         self.load_stats()
         self.load_events()
         self.load_locations()
         self.stdout.write(self.style.SUCCESS('Successfully loaded all campus data!'))
+
+    def create_default_admin(self):
+        # We use 'admin' as both username and email to make login easy in the app
+        username = 'admin'
+        email = 'admin'
+        password = 'admin123'
+
+        if not User.objects.filter(username=username).exists():
+            User.objects.create_superuser(username, email, password)
+            self.stdout.write(self.style.SUCCESS(f'  Created default admin: {email} / {password}'))
+        else:
+            user = User.objects.get(username=username)
+            user.email = email
+            user.set_password(password)
+            user.save()
+            self.stdout.write('  Admin credentials updated to admin / admin123')
 
     def load_stats(self):
         CampusStat.objects.all().delete()
