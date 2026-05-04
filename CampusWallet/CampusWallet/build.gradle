@@ -1,0 +1,4 @@
+// Top-level build file – do not add config here that belongs in subprojects.
+plugins {
+    id 'com.android.application' version '8.2.2' apply false
+}
