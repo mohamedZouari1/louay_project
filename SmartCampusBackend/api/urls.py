@@ -22,7 +22,9 @@ urlpatterns = [
 
     # ── Social Hub ──────────────────────────
     path('social/feed/', views.social_feed_view, name='social-feed'),
+    path('social/feed', views.social_feed_view), 
     path('social/posts/', views.social_create_post_view, name='social-create-post'),
+    path('social/posts/text/', views.social_create_text_post_view, name='social-create-text-post'),
     path('social/posts/<int:pk>/like/', views.social_like_post_view, name='social-like-post'),
     path('social/users/search/', views.social_search_users_view, name='social-search-users'),
     path('social/users/<int:pk>/', views.social_public_profile_view, name='social-public-profile'),

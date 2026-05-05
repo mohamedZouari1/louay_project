@@ -173,7 +173,12 @@ def social_feed_view(request):
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def social_create_post_view(request):
     """Create a new post. post_type is auto-set from the author's verified role."""
-    content = request.data.get('content', '').strip()
+    # In Multipart requests, content might be in request.POST or request.data
+    content = request.data.get('content', '')
+    if not content and 'content' in request.POST:
+        content = request.POST.get('content', '')
+    
+    content = str(content).strip()
     if not content:
         return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -210,6 +215,21 @@ def social_like_post_view(request, pk):
         }, status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def social_create_text_post_view(request):
+    """Create a text-only post via JSON body (no image)."""
+    content = request.data.get('content', '')
+    if isinstance(content, list): content = content[0] if content else ''
+    content = str(content).strip()
+    if not content:
+        return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+    post = Post(author=request.user, content=content)
+    post.save()
+    serializer = PostSerializer(post, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def social_search_users_view(request):
@@ -218,11 +238,17 @@ def social_search_users_view(request):
     if len(q) < 2:
         return Response([])
 
-    users = User.objects.filter(
-        Q(first_name__icontains=q) |
-        Q(last_name__icontains=q) |
-        Q(profile__university__icontains=q)
-    ).exclude(id=request.user.id).select_related('profile')[:20]
+    try:
+        users = User.objects.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(profile__university__icontains=q)
+        ).exclude(id=request.user.id).select_related('profile')[:20]
+    except Exception:
+        users = User.objects.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q)
+        ).exclude(id=request.user.id)[:20]
 
     serializer = UserSearchSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)

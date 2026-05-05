@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-smartcampus-manouba-2024-hackathon-key'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2', '192.168.1.44', '*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

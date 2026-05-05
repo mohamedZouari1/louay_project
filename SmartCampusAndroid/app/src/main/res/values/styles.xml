@@ -14,6 +14,12 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <!-- Dialog theme used by WalletFragment -->
+    <style name="Theme.SmartCampus.Dialog" parent="Theme.Material3.Light.Dialog">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+    </style>
+
     <!-- Section Title -->
     <style name="SectionTitle">
         <item name="android:textSize">22sp</item>

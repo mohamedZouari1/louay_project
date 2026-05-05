@@ -6,7 +6,7 @@ public class Constants {
      * For Real Device, use your PC's WiFi IP (e.g., "http://192.168.1.5:8000/api/")
      * Ensure the phone and PC are on the same WiFi network.
      */
-    public static final String BASE_URL = "http://10.0.2.2:8000/api/";
+    public static final String BASE_URL = "http://192.168.1.44:8080/api/";
 
     public static final String PREF_NAME = "SmartCampusPrefs";
     public static final String KEY_TOKEN = "auth_token";

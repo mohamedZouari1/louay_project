@@ -1,34 +1,199 @@
 package com.smartcampus.manouba.fragments;
 
+import android.app.AlertDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.button.MaterialButton;
 import com.smartcampus.manouba.R;
+import com.smartcampus.manouba.utils.SharedPrefManager;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class WalletFragment extends Fragment {
 
-    public WalletFragment() {
-        // Required empty public constructor
-    }
+    // Simple in-memory wallet state (persisted via SharedPrefs key)
+    private double balance = 145.50;
+    private final List<Transaction> transactions = new ArrayList<>();
+
+    private TextView tvBalance;
+    private ViewGroup txContainer;
+    private MaterialButton btnTopUp, btnPay;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_wallet, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
-        // Setup click listeners for mock functionality
-        // Optional for now as UI handles most of the static feel
+
+        tvBalance    = view.findViewById(R.id.tv_wallet_balance);
+        txContainer  = view.findViewById(R.id.tx_container);
+        btnTopUp     = view.findViewById(R.id.btn_top_up);
+        btnPay       = view.findViewById(R.id.btn_pay);
+
+        // Restore balance from SharedPrefs
+        balance = requireActivity().getSharedPreferences("wallet_prefs", 0)
+                .getFloat("balance", 145.50f);
+
+        // Seed some transactions if first time
+        if (transactions.isEmpty()) {
+            transactions.add(new Transaction("Café – Coffee & Snack", "Yesterday, 10:30 AM", -4.50, "expense"));
+            transactions.add(new Transaction("Library – Printing",    "May 2, 14:15",        -1.20, "expense"));
+            transactions.add(new Transaction("Top Up",                "May 1, 09:00",        +50.00, "income"));
+        }
+
+        updateBalanceUI();
+        renderTransactions();
+
+        btnTopUp.setOnClickListener(v -> showTopUpDialog());
+        btnPay.setOnClickListener(v -> showPayDialog());
+    }
+
+    private void showTopUpDialog() {
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(android.R.layout.activity_list_item, null);
+
+        EditText input = new EditText(requireContext());
+        input.setHint("Amount in TND");
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setPadding(48, 32, 48, 32);
+
+        new AlertDialog.Builder(requireContext(), R.style.Theme_SmartCampus_Dialog)
+                .setTitle("💳 Top Up Wallet")
+                .setMessage("Enter the amount to add:")
+                .setView(input)
+                .setPositiveButton("Add Funds", (dialog, which) -> {
+                    String val = input.getText().toString().trim();
+                    if (val.isEmpty()) return;
+                    try {
+                        double amount = Double.parseDouble(val);
+                        if (amount <= 0) { Toast.makeText(requireContext(), "Enter a positive amount.", Toast.LENGTH_SHORT).show(); return; }
+                        balance += amount;
+                        String time = new SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(new Date());
+                        transactions.add(0, new Transaction("Top Up", time, amount, "income"));
+                        saveBalance();
+                        updateBalanceUI();
+                        renderTransactions();
+                        Toast.makeText(requireContext(), String.format(Locale.getDefault(), "+%.2f TND added!", amount), Toast.LENGTH_SHORT).show();
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(requireContext(), "Invalid amount.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showPayDialog() {
+        String[] options = { "Café – Coffee & Snack (4.50 TND)", "Library – Printing (1.20 TND)",
+                "Restaurant – Lunch (7.00 TND)", "Custom amount…" };
+
+        new AlertDialog.Builder(requireContext(), R.style.Theme_SmartCampus_Dialog)
+                .setTitle("💰 Pay")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 3) {
+                        showCustomPayDialog();
+                    } else {
+                        double[] amounts = { 4.50, 1.20, 7.00 };
+                        String[] names   = { "Café – Coffee & Snack", "Library – Printing", "Restaurant – Lunch" };
+                        processPayment(names[which], amounts[which]);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showCustomPayDialog() {
+        EditText input = new EditText(requireContext());
+        input.setHint("Amount in TND");
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setPadding(48, 32, 48, 32);
+
+        new AlertDialog.Builder(requireContext(), R.style.Theme_SmartCampus_Dialog)
+                .setTitle("Custom Payment")
+                .setView(input)
+                .setPositiveButton("Pay", (dialog, which) -> {
+                    String val = input.getText().toString().trim();
+                    if (!val.isEmpty()) {
+                        try { processPayment("Payment", Double.parseDouble(val)); }
+                        catch (NumberFormatException e) { Toast.makeText(requireContext(), "Invalid amount.", Toast.LENGTH_SHORT).show(); }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void processPayment(String label, double amount) {
+        if (amount > balance) {
+            Toast.makeText(requireContext(), "Insufficient balance!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        balance -= amount;
+        String time = new SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(new Date());
+        transactions.add(0, new Transaction(label, time, -amount, "expense"));
+        saveBalance();
+        updateBalanceUI();
+        renderTransactions();
+        Toast.makeText(requireContext(), String.format(Locale.getDefault(), "Paid %.2f TND ✓", amount), Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateBalanceUI() {
+        if (tvBalance != null)
+            tvBalance.setText(String.format(Locale.getDefault(), "%.2f TND", balance));
+    }
+
+    private void renderTransactions() {
+        if (txContainer == null) return;
+        txContainer.removeAllViews();
+        for (Transaction tx : transactions) {
+            View row = LayoutInflater.from(requireContext())
+                    .inflate(R.layout.item_transaction, txContainer, false);
+
+            TextView tvLabel   = row.findViewById(R.id.tv_tx_label);
+            TextView tvDate    = row.findViewById(R.id.tv_tx_date);
+            TextView tvAmount  = row.findViewById(R.id.tv_tx_amount);
+
+            tvLabel.setText(tx.label);
+            tvDate.setText(tx.date);
+            if (tx.type.equals("income")) {
+                tvAmount.setText(String.format(Locale.getDefault(), "+%.2f TND", tx.amount));
+                tvAmount.setTextColor(Color.parseColor("#2E7D32"));
+            } else {
+                tvAmount.setText(String.format(Locale.getDefault(), "%.2f TND", tx.amount));
+                tvAmount.setTextColor(Color.parseColor("#C62828"));
+            }
+            txContainer.addView(row);
+        }
+    }
+
+    private void saveBalance() {
+        requireActivity().getSharedPreferences("wallet_prefs", 0)
+                .edit().putFloat("balance", (float) balance).apply();
+    }
+
+    static class Transaction {
+        String label, date, type;
+        double amount;
+        Transaction(String label, String date, double amount, String type) {
+            this.label = label; this.date = date; this.amount = amount; this.type = type;
+        }
     }
 }

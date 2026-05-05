@@ -100,13 +100,25 @@ class CampusStatSerializer(serializers.ModelSerializer):
 
 class PostAuthorSerializer(serializers.ModelSerializer):
     """Lightweight author info embedded in every post."""
-    role = serializers.CharField(source='profile.role', default='student')
-    university = serializers.CharField(source='profile.university', default='')
-    avatar_color = serializers.CharField(source='profile.avatar_color', default='#1A237E')
+    role = serializers.SerializerMethodField()
+    university = serializers.SerializerMethodField()
+    avatar_color = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'role', 'university', 'avatar_color']
+
+    def get_role(self, obj):
+        try: return obj.profile.role
+        except: return 'student'
+
+    def get_university(self, obj):
+        try: return obj.profile.university
+        except: return ''
+
+    def get_avatar_color(self, obj):
+        try: return obj.profile.avatar_color
+        except: return '#1A237E'
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -141,20 +153,35 @@ class PostSerializer(serializers.ModelSerializer):
 
 class UserSearchSerializer(serializers.ModelSerializer):
     """Public-facing user card for the Search tab."""
-    role = serializers.CharField(source='profile.role', default='student')
-    university = serializers.CharField(source='profile.university', default='')
-    avatar_color = serializers.CharField(source='profile.avatar_color', default='#1A237E')
-    bio = serializers.CharField(source='profile.bio', default='')
+    role = serializers.SerializerMethodField()
+    university = serializers.SerializerMethodField()
+    avatar_color = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            'id', 'first_name', 'last_name',
-            'role', 'university', 'avatar_color', 'bio',
-            'followers_count', 'following_count',
+            'id', 'first_name', 'last_name', 'role', 'university',
+            'avatar_color', 'bio', 'followers_count', 'following_count'
         ]
+
+    def get_role(self, obj):
+        try: return obj.profile.role
+        except: return 'student'
+
+    def get_university(self, obj):
+        try: return obj.profile.university
+        except: return ''
+
+    def get_avatar_color(self, obj):
+        try: return obj.profile.avatar_color
+        except: return '#1A237E'
+
+    def get_bio(self, obj):
+        try: return obj.profile.bio
+        except: return ''
 
     def get_followers_count(self, obj):
         return obj.followers.count()

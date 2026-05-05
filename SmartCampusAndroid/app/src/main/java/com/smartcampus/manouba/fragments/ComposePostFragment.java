@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -41,11 +42,11 @@ import retrofit2.Response;
 public class ComposePostFragment extends Fragment {
 
     private TextInputEditText etContent;
-    private MaterialButton btnPublish, btnAttach;
+    private MaterialButton btnPublish;
+    private View btnAttach;
     private ImageView ivPreview;
     private ImageButton btnRemoveImage;
     private View imagePreviewContainer;
-
     private Uri selectedImageUri = null;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
@@ -68,12 +69,23 @@ public class ComposePostFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        etContent            = view.findViewById(R.id.et_content);
-        btnPublish           = view.findViewById(R.id.btn_publish);
-        btnAttach            = view.findViewById(R.id.btn_attach);
-        ivPreview            = view.findViewById(R.id.iv_preview);
-        btnRemoveImage       = view.findViewById(R.id.btn_remove_image);
+        etContent             = view.findViewById(R.id.et_content);
+        btnPublish            = view.findViewById(R.id.btn_publish);
+        btnAttach             = view.findViewById(R.id.btn_attach);
+        ivPreview             = view.findViewById(R.id.iv_preview);
+        btnRemoveImage        = view.findViewById(R.id.btn_remove_image);
         imagePreviewContainer = view.findViewById(R.id.image_preview_container);
+
+        // Set avatar initials in LinkedIn-style compose header
+        TextView tvComposeAvatar = view.findViewById(R.id.tv_compose_avatar);
+        if (tvComposeAvatar != null) {
+            String name = SharedPrefManager.getInstance(requireContext()).getUserName();
+            String initials = "";
+            String[] parts = name.trim().split(" ");
+            if (parts.length > 0 && !parts[0].isEmpty()) initials += parts[0].charAt(0);
+            if (parts.length > 1 && !parts[1].isEmpty()) initials += parts[1].charAt(0);
+            tvComposeAvatar.setText(initials.toUpperCase());
+        }
 
         btnAttach.setOnClickListener(v -> openImagePicker());
         btnRemoveImage.setOnClickListener(v -> {
@@ -81,7 +93,6 @@ public class ComposePostFragment extends Fragment {
             imagePreviewContainer.setVisibility(View.GONE);
             Toast.makeText(requireContext(), getString(R.string.photo_removed), Toast.LENGTH_SHORT).show();
         });
-
         btnPublish.setOnClickListener(v -> publishPost());
     }
 
@@ -102,58 +113,71 @@ public class ComposePostFragment extends Fragment {
         btnPublish.setText(R.string.publishing);
 
         String token = SharedPrefManager.getInstance(requireContext()).getToken();
-        RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), content);
 
-        MultipartBody.Part imagePart = null;
         if (selectedImageUri != null) {
+            // With image → multipart
             try {
                 File imageFile = uriToFile(selectedImageUri);
+                RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), content);
                 RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), imageFile);
-                imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), reqFile);
+                MultipartBody.Part imagePart = MultipartBody.Part.createFormData("image", imageFile.getName(), reqFile);
+
+                RetrofitClient.getInstance(token).getApi()
+                        .createPost(contentBody, imagePart)
+                        .enqueue(postCallback);
             } catch (Exception e) {
-                Toast.makeText(requireContext(), "Could not attach image, posting without it.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Could not attach image.", Toast.LENGTH_SHORT).show();
+                postTextOnly(content, token);
+            }
+        } else {
+            // Text-only → simple JSON POST (no multipart issues)
+            postTextOnly(content, token);
+        }
+    }
+
+    private void postTextOnly(String content, String token) {
+        JsonObject body = new JsonObject();
+        body.addProperty("content", content);
+        RetrofitClient.getInstance(token).getApi()
+                .createTextPost(body)
+                .enqueue(postCallback);
+    }
+
+    private final Callback<JsonObject> postCallback = new Callback<JsonObject>() {
+        @Override
+        public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+            if (!isAdded()) return;
+            btnPublish.setEnabled(true);
+            btnPublish.setText(R.string.publish);
+
+            if (response.isSuccessful()) {
+                Toast.makeText(requireContext(), getString(R.string.post_published), Toast.LENGTH_SHORT).show();
+                etContent.setText("");
+                selectedImageUri = null;
+                imagePreviewContainer.setVisibility(View.GONE);
+                // Switch to Feed tab
+                if (getParentFragment() instanceof SocialHubFragment) {
+                    androidx.viewpager2.widget.ViewPager2 vp =
+                            getParentFragment().getView().findViewById(R.id.view_pager);
+                    if (vp != null) vp.setCurrentItem(0, true);
+                }
+            } else {
+                String errMsg = "Error " + response.code();
+                try { if (response.errorBody() != null) errMsg = response.errorBody().string(); }
+                catch (Exception ignored) {}
+                Toast.makeText(requireContext(), errMsg, Toast.LENGTH_LONG).show();
             }
         }
 
-        RetrofitClient.getInstance(token).getApi()
-                .createPost(contentBody, imagePart)
-                .enqueue(new Callback<JsonObject>() {
-                    @Override
-                    public void onResponse(@NonNull Call<JsonObject> call,
-                                           @NonNull Response<JsonObject> response) {
-                        if (!isAdded()) return;
-                        btnPublish.setEnabled(true);
-                        btnPublish.setText(R.string.publish);
+        @Override
+        public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+            if (!isAdded()) return;
+            btnPublish.setEnabled(true);
+            btnPublish.setText(R.string.publish);
+            Toast.makeText(requireContext(), "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    };
 
-                        if (response.isSuccessful()) {
-                            Toast.makeText(requireContext(), getString(R.string.post_published), Toast.LENGTH_SHORT).show();
-                            // Clear form
-                            etContent.setText("");
-                            selectedImageUri = null;
-                            imagePreviewContainer.setVisibility(View.GONE);
-
-                            // Switch back to Feed tab and refresh
-                            if (getParentFragment() instanceof SocialHubFragment) {
-                                androidx.viewpager2.widget.ViewPager2 vp =
-                                        getParentFragment().getView().findViewById(R.id.view_pager);
-                                if (vp != null) vp.setCurrentItem(0, true);
-                            }
-                        } else {
-                            Toast.makeText(requireContext(), getString(R.string.post_error), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                        if (!isAdded()) return;
-                        btnPublish.setEnabled(true);
-                        btnPublish.setText(R.string.publish);
-                        Toast.makeText(requireContext(), getString(R.string.error_network), Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    /** Copy content URI into a temp File so OkHttp can read it. */
     private File uriToFile(Uri uri) throws Exception {
         InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
         File tempFile = File.createTempFile("post_image_", ".jpg", requireContext().getCacheDir());

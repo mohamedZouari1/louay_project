@@ -11,7 +11,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -55,7 +54,9 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
         emptyState   = view.findViewById(R.id.empty_state);
         swipeRefresh = view.findViewById(R.id.swipe_refresh);
 
-        adapter = new PostsAdapter(requireContext(), posts, this);
+        // We now pass 'true' to show the LinkedIn header manually inside the adapter
+        adapter = new PostsAdapter(requireContext(), posts, this, true);
+
         rvFeed.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvFeed.setAdapter(adapter);
 
@@ -87,7 +88,7 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
                             adapter.notifyDataSetChanged();
                             emptyState.setVisibility(posts.isEmpty() ? View.VISIBLE : View.GONE);
                         } else {
-                            showError("Could not load feed.");
+                            showError("Could not load feed (code " + response.code() + ")");
                         }
                     }
 
@@ -133,10 +134,7 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
         }
     }
 
-    /** Called by ComposePostFragment (via parent SocialHubFragment) after a successful post. */
-    public void refreshFeed() {
-        loadFeed();
-    }
+    public void refreshFeed() { loadFeed(); }
 
     private void showError(String msg) {
         if (isAdded()) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();

@@ -1,64 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- LinkedIn-style People card -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
-    android:layout_marginTop="6dp"
-    app:cardCornerRadius="14dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="8dp"
     app:cardElevation="1dp"
-    app:strokeWidth="0dp">
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="14dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_avatar"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:background="@drawable/bg_avatar_circle" />
-
+        <!-- Top: avatar + info -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="12dp">
+            android:orientation="horizontal"
+            android:padding="14dp"
+            android:gravity="center_vertical">
 
+            <!-- Big avatar -->
             <TextView
-                android:id="@+id/tv_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:id="@+id/tv_avatar"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_avatar_circle" />
 
-            <TextView
-                android:id="@+id/tv_university"
-                android:layout_width="wrap_content"
+            <!-- Name + university + role -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:layout_marginTop="2dp" />
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
 
+                <TextView
+                    android:id="@+id/tv_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#000000"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_university"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#555555"
+                    android:textSize="13sp"
+                    android:layout_marginTop="2dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_role"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="10sp"
+                    android:layout_marginTop="4dp"
+                    app:chipMinHeight="22dp"
+                    app:chipStartPadding="6dp"
+                    app:chipEndPadding="6dp"
+                    style="@style/Widget.Material3.Chip.Assist" />
+            </LinearLayout>
         </LinearLayout>
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_role"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            app:chipMinHeight="24dp"
-            style="@style/Widget.Material3.Chip.Assist" />
+        <!-- Divider -->
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE"/>
+
+        <!-- Connect button — LinkedIn style -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_view_profile"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="View Profile"
+            android:textColor="#0A66C2"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            style="@style/Widget.Material3.Button.TextButton"
+            app:iconTint="#0A66C2"/>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

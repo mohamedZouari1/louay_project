@@ -1,159 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<!-- LinkedIn-style post card -->
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
-    android:layout_marginTop="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp"
-    android:background="@color/surface">
+    android:orientation="vertical"
+    android:layout_marginBottom="8dp"
+    android:background="@color/white">
 
+    <!-- ── Author header ─────────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
 
-        <!-- Author row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <!-- Avatar circle with initials -->
-            <FrameLayout
-                android:id="@+id/avatar_container"
-                android:layout_width="44dp"
-                android:layout_height="44dp">
-
-                <TextView
-                    android:id="@+id/tv_avatar"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_avatar_circle" />
-            </FrameLayout>
-
-            <!-- Name + meta -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="10dp">
-
-                <TextView
-                    android:id="@+id/tv_author_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="2dp">
-
-                    <TextView
-                        android:id="@+id/tv_university"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" · "
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/tv_timestamp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Role chip -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_role"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="10sp"
-                app:chipMinHeight="24dp"
-                app:chipStartPadding="8dp"
-                app:chipEndPadding="8dp"
-                style="@style/Widget.Material3.Chip.Assist" />
-
-        </LinearLayout>
-
-        <!-- Post content -->
+        <!-- Avatar circle with initials -->
         <TextView
-            android:id="@+id/tv_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:lineSpacingMultiplier="1.4"
-            android:layout_marginTop="12dp" />
+            android:id="@+id/tv_avatar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_avatar_circle" />
 
-        <!-- Post image (optional) -->
-        <ImageView
-            android:id="@+id/iv_post_image"
-            android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:scaleType="centerCrop"
-            android:layout_marginTop="10dp"
-            android:visibility="gone"
-            android:background="@color/gray_light"
-            android:contentDescription="Post image" />
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/gray_light"
-            android:layout_marginTop="12dp" />
-
-        <!-- Like row -->
+        <!-- Name + tagline -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
-
-            <ImageButton
-                android:id="@+id/btn_like"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@android:drawable/btn_star_big_off"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/like" />
+            android:orientation="vertical"
+            android:layout_marginStart="10dp">
 
             <TextView
-                android:id="@+id/tv_likes_count"
+                android:id="@+id/tv_author_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:layout_marginStart="4dp" />
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/tv_university"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:layout_marginTop="1dp"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="1dp">
+
+                <TextView
+                    android:id="@+id/tv_timestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#999999"
+                    android:textSize="11sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · 🌐"
+                    android:textColor="#999999"
+                    android:textSize="11sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Role badge (LinkedIn-style: "Student" / "Admin" / "Org") -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_role"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="10sp"
+            app:chipMinHeight="22dp"
+            app:chipStartPadding="6dp"
+            app:chipEndPadding="6dp"
+            style="@style/Widget.Material3.Chip.Assist" />
+
+    </LinearLayout>
+
+    <!-- ── Post content ──────────────────────────────── -->
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#1D1D1D"
+        android:textSize="15sp"
+        android:lineSpacingMultiplier="1.45"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="10dp"/>
+
+    <!-- ── Post image (optional) ─────────────────────── -->
+    <ImageView
+        android:id="@+id/iv_post_image"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:background="#F0F0F0"
+        android:contentDescription="Post image" />
+
+    <!-- ── Like count bar (e.g. 👍 12 others liked this) -->
+    <LinearLayout
+        android:id="@+id/ll_like_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👍 "
+            android:textSize="13sp"/>
+
+        <TextView
+            android:id="@+id/tv_likes_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#666666"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E8E8E8"
+        android:layout_marginHorizontal="12dp"/>
+
+    <!-- ── LinkedIn-style reaction bar ──────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp">
+
+        <!-- LIKE button -->
+        <LinearLayout
+            android:id="@+id/btn_like"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageButton
+                android:id="@+id/ib_like_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:background="@null"
+                android:contentDescription="Like"/>
+
+            <TextView
+                android:id="@+id/tv_like_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Like"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- COMMENT button (visual only) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_send"
+                android:contentDescription="Comment"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Comment"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- SHARE button (visual only) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_share"
+                android:contentDescription="Share"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Repost"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
         </LinearLayout>
 
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

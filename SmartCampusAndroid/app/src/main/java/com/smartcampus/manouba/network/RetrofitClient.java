@@ -17,6 +17,9 @@ public class RetrofitClient {
 
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.addInterceptor(logging);
+        httpClient.connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+        httpClient.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+        httpClient.writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
 
         if (token != null) {
             httpClient.addInterceptor(new AuthInterceptor(token));
