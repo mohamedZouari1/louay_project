@@ -60,12 +60,20 @@
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\anim\\fade_out.xml"
     },
     {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_esen_brain_games_expo.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\esen_brain_games_expo.jpg"
+    },
+    {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\mipmap-mdpi_ic_launcher_round.png.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\mipmap-mdpi\\ic_launcher_round.png"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\mipmap-xxxhdpi_ic_launcher_round.png.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\mipmap-xxxhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_tunihack_11_0.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\tunihack_11_0.jpg"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_image_4.jpg.flat",
@@ -88,12 +96,20 @@
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\career_fair_3_0.jpg"
     },
     {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_gradient_black_transparent.xml.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\gradient_black_transparent.xml"
+    },
+    {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_hackaton_uma.png.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\hackaton_uma.png"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_ic_smart_campus_logo.png.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\ic_smart_campus_logo.png"
+    },
+    {
+        "merged": "com.smartcampus.manouba.app-debug-53:/drawable_orbyx_ml_challenge.jpg.flat",
+        "source": "com.smartcampus.manouba.app-main-55:/drawable/orbyx_ml_challenge.jpg"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\layout_fragment_onboarding.xml.flat",
@@ -160,6 +176,10 @@
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_login.xml"
     },
     {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_green_fortnight.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\green_fortnight.jpg"
+    },
+    {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_bg_icon_circle_amber.xml.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\bg_icon_circle_amber.xml"
     },
@@ -172,8 +192,16 @@
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\activity_main.xml"
     },
     {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_geodrone_day.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\geodrone_day.jpg"
+    },
+    {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\layout_activity_auth.xml.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\activity_auth.xml"
+    },
+    {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_code_conquer_3_0.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\code_conquer_3_0.jpg"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_image33.jpg.flat",
@@ -208,8 +236,8 @@
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\bg_icon_circle_blue.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-debug-53:/drawable_bg_status_finished.xml.flat",
-        "source": "com.smartcampus.manouba.app-main-55:/drawable/bg_status_finished.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_esenet_talent_fair_7.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\esenet_talent_fair_7.jpg"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_isd.jpg.flat",
@@ -266,6 +294,10 @@
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\layout_fragment_dashboard.xml.flat",
         "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_dashboard.xml"
+    },
+    {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\drawable_recursia.jpg.flat",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\drawable\\recursia.jpg"
     },
     {
         "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-debug-53:\\layout_fragment_events.xml.flat",

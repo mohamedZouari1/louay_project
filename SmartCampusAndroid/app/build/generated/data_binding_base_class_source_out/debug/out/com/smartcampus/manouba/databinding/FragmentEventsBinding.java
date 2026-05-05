@@ -4,11 +4,12 @@ package com.smartcampus.manouba.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.smartcampus.manouba.R;
@@ -18,24 +19,29 @@ import java.lang.String;
 
 public final class FragmentEventsBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final CoordinatorLayout rootView;
+
+  @NonNull
+  public final LinearLayout layoutEmptyState;
 
   @NonNull
   public final RecyclerView rvEvents;
 
   @NonNull
-  public final AutoCompleteTextView spinnerFilter;
+  public final SwipeRefreshLayout swipeRefreshEvents;
 
-  private FragmentEventsBinding(@NonNull LinearLayout rootView, @NonNull RecyclerView rvEvents,
-      @NonNull AutoCompleteTextView spinnerFilter) {
+  private FragmentEventsBinding(@NonNull CoordinatorLayout rootView,
+      @NonNull LinearLayout layoutEmptyState, @NonNull RecyclerView rvEvents,
+      @NonNull SwipeRefreshLayout swipeRefreshEvents) {
     this.rootView = rootView;
+    this.layoutEmptyState = layoutEmptyState;
     this.rvEvents = rvEvents;
-    this.spinnerFilter = spinnerFilter;
+    this.swipeRefreshEvents = swipeRefreshEvents;
   }
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public CoordinatorLayout getRoot() {
     return rootView;
   }
 
@@ -60,19 +66,26 @@ public final class FragmentEventsBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.layout_empty_state;
+      LinearLayout layoutEmptyState = ViewBindings.findChildViewById(rootView, id);
+      if (layoutEmptyState == null) {
+        break missingId;
+      }
+
       id = R.id.rv_events;
       RecyclerView rvEvents = ViewBindings.findChildViewById(rootView, id);
       if (rvEvents == null) {
         break missingId;
       }
 
-      id = R.id.spinner_filter;
-      AutoCompleteTextView spinnerFilter = ViewBindings.findChildViewById(rootView, id);
-      if (spinnerFilter == null) {
+      id = R.id.swipe_refresh_events;
+      SwipeRefreshLayout swipeRefreshEvents = ViewBindings.findChildViewById(rootView, id);
+      if (swipeRefreshEvents == null) {
         break missingId;
       }
 
-      return new FragmentEventsBinding((LinearLayout) rootView, rvEvents, spinnerFilter);
+      return new FragmentEventsBinding((CoordinatorLayout) rootView, layoutEmptyState, rvEvents,
+          swipeRefreshEvents);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

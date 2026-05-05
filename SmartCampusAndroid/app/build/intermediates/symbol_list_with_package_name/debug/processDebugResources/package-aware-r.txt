@@ -3144,6 +3144,7 @@ drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
 drawable career_fair_3_0
 drawable centre_de_publication
+drawable code_conquer_3_0
 drawable cultureday
 drawable design_fab_background
 drawable design_ic_visibility
@@ -3152,9 +3153,14 @@ drawable design_password_eye
 drawable design_snackbar_background
 drawable ensi
 drawable esct
+drawable esen_brain_games_expo
+drawable esenet_talent_fair_7
 drawable flah
+drawable geodrone_day
+drawable gradient_black_transparent
 drawable gradient_bottom_fade
 drawable gradient_primary
+drawable green_fortnight
 drawable greenspaces
 drawable hackaton_uma
 drawable ic_arrow_back_black_24
@@ -3267,7 +3273,9 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable orbyx_ml_challenge
 drawable rectorat_image
+drawable recursia
 drawable robocup_ensi_8
 drawable shape_indicator
 drawable shape_indicator_active
@@ -3275,6 +3283,7 @@ drawable symposium
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
+drawable tunihack_11_0
 drawable uma
 id ALT
 id BOTTOM_END
@@ -3545,6 +3554,7 @@ id jumpToStart
 id labeled
 id layout
 id layout_carousel_indicators
+id layout_empty_state
 id layout_footer
 id layout_indicators
 id layout_loading
@@ -3748,7 +3758,6 @@ id software
 id south
 id spacer
 id special_effects_controller_view_tag
-id spinner_filter
 id spinner_university
 id spline
 id split_action_bar
@@ -3771,6 +3780,7 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
+id swipe_refresh_events
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans

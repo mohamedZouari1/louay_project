@@ -50,12 +50,14 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
         holder.tvEventTitle.setText(event.getTitle() != null ? event.getTitle() : "No Title");
         holder.tvEventSubtitle.setText(event.getSubtitle() != null ? event.getSubtitle() : "");
         holder.tvEventDescription.setText(event.getDescription() != null ? event.getDescription() : "");
-        holder.tvEventDate.setText(event.getDateDisplay() != null ? event.getDateDisplay() : "");
+        
+        // Use a formatted date version if possible, or just the raw display
+        String rawDate = event.getDateDisplay();
+        holder.tvEventDate.setText(rawDate != null ? rawDate : "");
 
-        // Update status based on TODAY'S DATE
-        updateEventStatus(holder, event.getDateDisplay());
-
-        // Dynamic Image Selection with Keyword Fallback
+        updateEventStatus(holder, rawDate);
+        
+        // Dynamic Image Selection
         int resId = findResourceForEvent(holder.itemView.getContext(), event);
         
         if (resId != 0) {
@@ -124,12 +126,25 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
             // PAST -> FINISHED (RED)
             holder.tvEventStatus.setText(R.string.status_finished);
             holder.tvEventStatus.setBackgroundResource(R.drawable.bg_status_finished);
-            holder.tvEventStatus.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_finished, 0, 0, 0);
+            
+            // Set a scaled version of the icon (14dp equivalent)
+            android.graphics.drawable.Drawable icon = holder.itemView.getContext().getDrawable(R.drawable.ic_finished);
+            if (icon != null) {
+                int size = (int) (14 * holder.itemView.getContext().getResources().getDisplayMetrics().density);
+                icon.setBounds(0, 0, size, size);
+                holder.tvEventStatus.setCompoundDrawables(icon, null, null, null);
+            }
         } else {
             // TODAY OR FUTURE -> UPCOMING (GREEN)
             holder.tvEventStatus.setText(R.string.status_upcoming);
             holder.tvEventStatus.setBackgroundResource(R.drawable.bg_status_upcoming);
-            holder.tvEventStatus.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_upcoming, 0, 0, 0);
+            
+            android.graphics.drawable.Drawable icon = holder.itemView.getContext().getDrawable(R.drawable.ic_upcoming);
+            if (icon != null) {
+                int size = (int) (14 * holder.itemView.getContext().getResources().getDisplayMetrics().density);
+                icon.setBounds(0, 0, size, size);
+                holder.tvEventStatus.setCompoundDrawables(icon, null, null, null);
+            }
         }
     }
 
@@ -147,7 +162,7 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.ViewHolder
                 if (yearStr != null) year = Integer.parseInt(yearStr);
             }
 
-            String monthRegex = "(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Déc)";
+            String monthRegex = "(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Déc)";
             String monthStr = null;
             int day = -1;
 

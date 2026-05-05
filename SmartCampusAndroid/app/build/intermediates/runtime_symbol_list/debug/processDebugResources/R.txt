@@ -3143,6 +3143,7 @@ int drawable btn_radio_on_mtrl 0x7f080089
 int drawable btn_radio_on_to_off_mtrl_animation 0x7f08008a
 int drawable career_fair_3_0 0x7f08008b
 int drawable centre_de_publication 0x7f08008c
+int drawable code_conquer_3_0 0x7f080112
 int drawable cultureday 0x7f08008d
 int drawable design_fab_background 0x7f08008e
 int drawable design_ic_visibility 0x7f08008f
@@ -3151,9 +3152,14 @@ int drawable design_password_eye 0x7f080091
 int drawable design_snackbar_background 0x7f080092
 int drawable ensi 0x7f080093
 int drawable esct 0x7f080094
+int drawable esen_brain_games_expo 0x7f080113
+int drawable esenet_talent_fair_7 0x7f080117
 int drawable flah 0x7f080095
+int drawable geodrone_day 0x7f080114
+int drawable gradient_black_transparent 0x7f080111
 int drawable gradient_bottom_fade 0x7f080096
 int drawable gradient_primary 0x7f080097
+int drawable green_fortnight 0x7f080118
 int drawable greenspaces 0x7f080098
 int drawable hackaton_uma 0x7f080099
 int drawable ic_arrow_back_black_24 0x7f08009a
@@ -3266,7 +3272,9 @@ int drawable notification_template_icon_bg 0x7f080104
 int drawable notification_template_icon_low_bg 0x7f080105
 int drawable notification_tile_bg 0x7f080106
 int drawable notify_panel_notification_icon_bg 0x7f080107
+int drawable orbyx_ml_challenge 0x7f080119
 int drawable rectorat_image 0x7f080108
+int drawable recursia 0x7f080115
 int drawable robocup_ensi_8 0x7f080109
 int drawable shape_indicator 0x7f08010a
 int drawable shape_indicator_active 0x7f08010b
@@ -3274,6 +3282,7 @@ int drawable symposium 0x7f08010c
 int drawable test_level_drawable 0x7f08010d
 int drawable tooltip_frame_dark 0x7f08010e
 int drawable tooltip_frame_light 0x7f08010f
+int drawable tunihack_11_0 0x7f080116
 int drawable uma 0x7f080110
 int id ALT 0x7f090000
 int id BOTTOM_END 0x7f090001
@@ -3544,6 +3553,7 @@ int id jumpToStart 0x7f090109
 int id labeled 0x7f09010a
 int id layout 0x7f09010b
 int id layout_carousel_indicators 0x7f09010c
+int id layout_empty_state 0x7f090244
 int id layout_footer 0x7f09010d
 int id layout_indicators 0x7f09010e
 int id layout_loading 0x7f09010f
@@ -3747,7 +3757,6 @@ int id software 0x7f0901d4
 int id south 0x7f0901d5
 int id spacer 0x7f0901d6
 int id special_effects_controller_view_tag 0x7f0901d7
-int id spinner_filter 0x7f0901d8
 int id spinner_university 0x7f0901d9
 int id spline 0x7f0901da
 int id split_action_bar 0x7f0901db
@@ -3770,6 +3779,7 @@ int id stretch 0x7f0901eb
 int id submenuarrow 0x7f0901ec
 int id submit_area 0x7f0901ed
 int id supportScrollUp 0x7f0901ee
+int id swipe_refresh_events 0x7f090245
 int id tabMode 0x7f0901ef
 int id tag_accessibility_actions 0x7f0901f0
 int id tag_accessibility_clickable_spans 0x7f0901f1

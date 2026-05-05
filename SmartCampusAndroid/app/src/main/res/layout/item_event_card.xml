@@ -6,11 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/gray_light">
+    android:layout_marginVertical="10dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,95 +18,108 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="200dp">
 
-            <!-- Event Image -->
             <ImageView
                 android:id="@+id/iv_event_image"
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
+                android:layout_height="match_parent"
                 android:contentDescription="@string/event_image"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                tools:src="@drawable/cultureday" />
 
-            <!-- Event Status -->
+            <!-- Gradient overlay for text readability -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/gradient_black_transparent" />
+
             <TextView
                 android:id="@+id/tv_event_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top|end"
+                android:layout_gravity="top|start"
                 android:layout_margin="12dp"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
                 android:background="@drawable/bg_status_upcoming"
                 android:textColor="@color/white"
-                android:textSize="11sp"
+                android:textSize="9sp"
                 android:textStyle="bold"
                 android:textAllCaps="true"
-                android:gravity="center"
-                android:drawablePadding="8dp"
                 android:elevation="4dp"
-                tools:text="Upcoming"
-                tools:drawableStart="@drawable/ic_upcoming" />
+                android:drawablePadding="4dp"
+                android:gravity="center"
+                tools:text="Upcoming" />
+
+            <TextView
+                android:id="@+id/tv_event_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="12dp"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:elevation="4dp"
+                tools:text="Oct 19, 2025" />
 
         </FrameLayout>
 
-        <!-- Event Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="16dp">
 
             <TextView
                 android:id="@+id/tv_event_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="2"
-                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:maxLines="1"
                 android:textColor="@color/text_primary"
-                android:layout_marginBottom="4dp" />
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp"
+                tools:text="Annual Symposium" />
 
             <TextView
                 android:id="@+id/tv_event_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceCaption"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:id="@+id/tv_event_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawablePadding="8dp"
-                android:gravity="center_vertical"
-                android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="@color/primary"
-                app:drawableStartCompat="@drawable/ic_date" />
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:layout_marginBottom="8dp"
+                tools:text="University of Manouba" />
 
             <TextView
                 android:id="@+id/tv_event_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:ellipsize="end"
-                android:maxLines="3"
-                android:textAppearance="?attr/textAppearanceBody2"
-                android:lineSpacingMultiplier="1.2" />
+                android:maxLines="2"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:lineSpacingExtra="2dp"
+                tools:text="Join us for the most prestigious academic event of the year featuring speakers from around the world." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_view_event"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="View Details"
+                android:textSize="12sp"
+                app:cornerRadius="10dp" />
 
         </LinearLayout>
-
-        <!-- View Details Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_view_event"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/view_details" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
