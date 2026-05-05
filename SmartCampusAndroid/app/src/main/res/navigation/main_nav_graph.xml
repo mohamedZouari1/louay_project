@@ -24,6 +24,12 @@
         tools:layout="@layout/fragment_social_hub" />
 
     <fragment
+        android:id="@+id/walletFragment"
+        android:name="com.smartcampus.manouba.fragments.WalletFragment"
+        android:label="Campus Wallet"
+        tools:layout="@layout/fragment_wallet" />
+
+    <fragment
         android:id="@+id/profileFragment"
         android:name="com.smartcampus.manouba.fragments.ProfileFragment"
         android:label="My Profile"

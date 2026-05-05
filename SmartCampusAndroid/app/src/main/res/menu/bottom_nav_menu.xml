@@ -13,6 +13,10 @@
         android:icon="@android:drawable/ic_menu_share"
         android:title="@string/nav_social" />
     <item
+        android:id="@+id/walletFragment"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="@string/nav_wallet" />
+    <item
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="@string/nav_profile" />

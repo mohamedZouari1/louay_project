@@ -68,7 +68,16 @@
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_map">Map</string>
     <string name="nav_social">Social</string>
+    <string name="nav_wallet">Wallet</string>
     <string name="nav_profile">Profile</string>
+
+    <!-- Campus Wallet -->
+    <string name="wallet_balance">Campus Wallet Balance</string>
+    <string name="wallet_top_up">Top Up</string>
+    <string name="wallet_pay">Pay</string>
+    <string name="wallet_history">Recent Transactions</string>
+    <string name="wallet_tx_coffee">Café – Coffee &amp; Snack</string>
+    <string name="wallet_tx_library">Library – Printing</string>
 
     <!-- Report Issue -->
     <string name="issue_type">Issue Type</string>
