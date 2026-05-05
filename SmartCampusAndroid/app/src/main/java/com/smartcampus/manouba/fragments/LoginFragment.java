@@ -2,6 +2,7 @@ package com.smartcampus.manouba.fragments;
 
 import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.smartcampus.manouba.R;
 import com.smartcampus.manouba.activities.AuthActivity;
 import com.smartcampus.manouba.network.RetrofitClient;
@@ -93,33 +96,63 @@ public class LoginFragment extends Fragment {
                 if (!isAdded()) return;
                 setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    JsonObject data = response.body();
-                    String token = data.get("token").getAsString();
-                    JsonObject user = data.getAsJsonObject("user");
+                    try {
+                        JsonObject data = response.body();
+                        if (!data.has("token") || !data.has("user")) {
+                            Log.e("LoginFragment", "Invalid response: missing token or user");
+                            Toast.makeText(requireContext(), "Invalid server response", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String token = data.get("token").getAsString();
+                        JsonObject user = data.getAsJsonObject("user");
 
-                    SharedPrefManager pref = SharedPrefManager.getInstance(requireContext());
-                    pref.saveToken(token);
+                        if (user == null || user.isJsonNull()) {
+                            Log.e("LoginFragment", "Invalid response: user object is null");
+                            Toast.makeText(requireContext(), "Invalid session data", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-                    String firstName = user.has("first_name") ? user.get("first_name").getAsString() : "";
-                    String lastName = user.has("last_name") ? user.get("last_name").getAsString() : "";
-                    String fullName = (firstName + " " + lastName).trim();
-                    if (fullName.isEmpty()) fullName = email.split("@")[0];
+                        SharedPrefManager pref = SharedPrefManager.getInstance(requireContext());
+                        pref.saveToken(token);
 
-                    String userEmail = user.get("email").getAsString();
-                    String university = "";
-                    if (user.has("profile") && !user.get("profile").isJsonNull()) {
-                        JsonObject profile = user.getAsJsonObject("profile");
-                        university = profile.has("university") ? profile.get("university").getAsString() : "";
-                    }
-                    int userId = user.get("id").getAsInt();
+                        String firstName = user.has("first_name") && !user.get("first_name").isJsonNull() 
+                                ? user.get("first_name").getAsString() : "";
+                        String lastName = user.has("last_name") && !user.get("last_name").isJsonNull() 
+                                ? user.get("last_name").getAsString() : "";
+                        String fullName = (firstName + " " + lastName).trim();
+                        
+                        String emailFromUser = user.has("email") && !user.get("email").isJsonNull()
+                                ? user.get("email").getAsString() : email;
+                        
+                        if (fullName.isEmpty()) fullName = emailFromUser.split("@")[0];
 
-                    pref.saveUser(fullName, userEmail, university, userId);
+                        String userEmail = emailFromUser;
+                        String university = "";
+                        if (user.has("profile") && !user.get("profile").isJsonNull()) {
+                            JsonObject profile = user.getAsJsonObject("profile");
+                            university = profile.has("university") && !profile.get("university").isJsonNull()
+                                    ? profile.get("university").getAsString() : "";
+                        }
+                        
+                        int userId = user.has("id") && !user.get("id").isJsonNull() 
+                                ? user.get("id").getAsInt() : -1;
 
-                    if (getActivity() instanceof AuthActivity) {
-                        ((AuthActivity) getActivity()).navigateToMain();
+                        pref.saveUser(fullName, userEmail, university, userId);
+
+                        if (getActivity() instanceof AuthActivity) {
+                            ((AuthActivity) getActivity()).navigateToMain();
+                        }
+                    } catch (Exception e) {
+                        Log.e("LoginFragment", "Error parsing login response", e);
+                        Toast.makeText(requireContext(), "Error processing login", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(requireContext(), R.string.error_login, Toast.LENGTH_SHORT).show();
+                    String serverMessage = getServerErrorMessage(response);
+                    if (serverMessage != null && !serverMessage.isEmpty()) {
+                        Toast.makeText(requireContext(), serverMessage, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(requireContext(), R.string.error_login, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
@@ -136,5 +169,32 @@ public class LoginFragment extends Fragment {
         btnLogin.setEnabled(!loading);
         btnLogin.setText(loading ? R.string.logging_in : R.string.login);
         progressLogin.setVisibility(loading ? View.VISIBLE : View.GONE);
+    }
+
+    private String getServerErrorMessage(Response<JsonObject> response) {
+        try {
+            if (response.errorBody() == null) return null;
+            String raw = response.errorBody().string();
+            if (raw == null || raw.trim().isEmpty()) return null;
+
+            JsonElement parsed = JsonParser.parseString(raw);
+            if (!parsed.isJsonObject()) return raw.trim();
+
+            JsonObject obj = parsed.getAsJsonObject();
+            if (obj.has("error") && !obj.get("error").isJsonNull()) {
+                return obj.get("error").getAsString();
+            }
+            for (String key : obj.keySet()) {
+                JsonElement value = obj.get(key);
+                if (value == null || value.isJsonNull()) continue;
+                if (value.isJsonArray() && value.getAsJsonArray().size() > 0) {
+                    return value.getAsJsonArray().get(0).getAsString();
+                }
+                return value.getAsString();
+            }
+        } catch (Exception e) {
+            Log.e("LoginFragment", "Failed to parse error response", e);
+        }
+        return null;
     }
 }

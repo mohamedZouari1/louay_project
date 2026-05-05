@@ -32,9 +32,6 @@ public final class FragmentDashboardBinding implements ViewBinding {
   public final LinearLayout layoutCarouselIndicators;
 
   @NonNull
-  public final RecyclerView rvEvents;
-
-  @NonNull
   public final RecyclerView rvStats;
 
   @NonNull
@@ -42,13 +39,12 @@ public final class FragmentDashboardBinding implements ViewBinding {
 
   private FragmentDashboardBinding(@NonNull NestedScrollView rootView,
       @NonNull MaterialButton btnAboutCampus, @NonNull MaterialButton btnReportIssue,
-      @NonNull LinearLayout layoutCarouselIndicators, @NonNull RecyclerView rvEvents,
-      @NonNull RecyclerView rvStats, @NonNull ViewPager2 viewpagerCarousel) {
+      @NonNull LinearLayout layoutCarouselIndicators, @NonNull RecyclerView rvStats,
+      @NonNull ViewPager2 viewpagerCarousel) {
     this.rootView = rootView;
     this.btnAboutCampus = btnAboutCampus;
     this.btnReportIssue = btnReportIssue;
     this.layoutCarouselIndicators = layoutCarouselIndicators;
-    this.rvEvents = rvEvents;
     this.rvStats = rvStats;
     this.viewpagerCarousel = viewpagerCarousel;
   }
@@ -98,12 +94,6 @@ public final class FragmentDashboardBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.rv_events;
-      RecyclerView rvEvents = ViewBindings.findChildViewById(rootView, id);
-      if (rvEvents == null) {
-        break missingId;
-      }
-
       id = R.id.rv_stats;
       RecyclerView rvStats = ViewBindings.findChildViewById(rootView, id);
       if (rvStats == null) {
@@ -117,7 +107,7 @@ public final class FragmentDashboardBinding implements ViewBinding {
       }
 
       return new FragmentDashboardBinding((NestedScrollView) rootView, btnAboutCampus,
-          btnReportIssue, layoutCarouselIndicators, rvEvents, rvStats, viewpagerCarousel);
+          btnReportIssue, layoutCarouselIndicators, rvStats, viewpagerCarousel);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

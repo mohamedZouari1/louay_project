@@ -67,6 +67,7 @@
     <!-- Bottom Nav -->
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_map">Map</string>
+    <string name="nav_events">Events</string>
     <string name="nav_profile">Profile</string>
 
     <!-- Report Issue -->
@@ -94,4 +95,9 @@
     <string name="error_network">Network error. Please try again.</string>
     <string name="error_login">Login Failed</string>
     <string name="error_register">Registration Failed</string>
+    <string name="event_image">Event Image</string>
+    <string name="view_details">View Details</string>
+    <string name="filter_by_location">Filter by location</string>
+    <string name="status_finished">FINISHED</string>
+    <string name="status_upcoming">UPCOMING</string>
 </resources>

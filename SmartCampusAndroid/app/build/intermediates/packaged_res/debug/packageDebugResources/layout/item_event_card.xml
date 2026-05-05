@@ -1,51 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="280dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="16dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardElevation="4dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/gray_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Event Image -->
-        <ImageView
-            android:id="@+id/iv_event_image"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:contentDescription="Event image"
-            android:scaleType="centerCrop" />
+            android:layout_height="wrap_content">
 
-        <!-- Event Date Badge -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/primary"
-            android:gravity="center"
-            android:padding="10dp">
+            <!-- Event Image -->
+            <ImageView
+                android:id="@+id/iv_event_image"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:contentDescription="@string/event_image"
+                android:scaleType="centerCrop" />
 
+            <!-- Event Status -->
             <TextView
-                android:id="@+id/tv_event_date"
+                android:id="@+id/tv_event_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="12dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="6dp"
+                android:background="@drawable/bg_status_upcoming"
                 android:textColor="@color/white"
-                android:textSize="13sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
-                android:drawablePadding="6dp" />
-        </LinearLayout>
+                android:textAllCaps="true"
+                android:gravity="center"
+                android:drawablePadding="8dp"
+                android:elevation="4dp"
+                tools:text="Upcoming"
+                tools:drawableStart="@drawable/ic_upcoming" />
+
+        </FrameLayout>
 
         <!-- Event Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="15dp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tv_event_title"
@@ -53,29 +64,50 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceHeadline6"
                 android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
 
             <TextView
                 android:id="@+id/tv_event_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceCaption"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:textStyle="italic"
                 android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_event_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="@color/primary"
+                app:drawableStartCompat="@drawable/ic_date" />
 
             <TextView
                 android:id="@+id/tv_event_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:maxLines="3"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3" />
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:lineSpacingMultiplier="1.2" />
+
         </LinearLayout>
+
+        <!-- View Details Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_view_event"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/view_details" />
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

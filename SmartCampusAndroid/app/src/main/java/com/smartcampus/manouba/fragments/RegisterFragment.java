@@ -2,6 +2,7 @@ package com.smartcampus.manouba.fragments;
 
 import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.smartcampus.manouba.R;
 import com.smartcampus.manouba.activities.AuthActivity;
 import com.smartcampus.manouba.network.RetrofitClient;
@@ -134,25 +137,51 @@ public class RegisterFragment extends Fragment {
                 if (!isAdded()) return;
                 setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    JsonObject data = response.body();
-                    String token = data.get("token").getAsString();
-                    JsonObject user = data.getAsJsonObject("user");
+                    try {
+                        JsonObject data = response.body();
+                        if (!data.has("token") || !data.has("user")) {
+                            Log.e("RegisterFragment", "Invalid response: missing token or user");
+                            Toast.makeText(requireContext(), "Invalid server response", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String token = data.get("token").getAsString();
+                        JsonObject user = data.getAsJsonObject("user");
 
-                    SharedPrefManager pref = SharedPrefManager.getInstance(requireContext());
-                    pref.saveToken(token);
+                        if (user == null || user.isJsonNull()) {
+                            Log.e("RegisterFragment", "Invalid response: user object is null");
+                            Toast.makeText(requireContext(), "Registration failed: no user data", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-                    String fn = user.has("first_name") ? user.get("first_name").getAsString() : "";
-                    String ln = user.has("last_name") ? user.get("last_name").getAsString() : "";
-                    String fullName = (fn + " " + ln).trim();
-                    if (fullName.isEmpty()) fullName = name;
+                        SharedPrefManager pref = SharedPrefManager.getInstance(requireContext());
+                        pref.saveToken(token);
 
-                    pref.saveUser(fullName, email, universities[uniPos], user.get("id").getAsInt());
+                        String fn = user.has("first_name") && !user.get("first_name").isJsonNull()
+                                ? user.get("first_name").getAsString() : "";
+                        String ln = user.has("last_name") && !user.get("last_name").isJsonNull()
+                                ? user.get("last_name").getAsString() : "";
+                        String fullName = (fn + " " + ln).trim();
+                        if (fullName.isEmpty()) fullName = name;
 
-                    if (getActivity() instanceof AuthActivity) {
-                        ((AuthActivity) getActivity()).navigateToMain();
+                        int userId = user.has("id") && !user.get("id").isJsonNull()
+                                ? user.get("id").getAsInt() : -1;
+
+                        pref.saveUser(fullName, email, universities[uniPos], userId);
+
+                        if (getActivity() instanceof AuthActivity) {
+                            ((AuthActivity) getActivity()).navigateToMain();
+                        }
+                    } catch (Exception e) {
+                        Log.e("RegisterFragment", "Error parsing register response", e);
+                        Toast.makeText(requireContext(), "Error processing registration", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(requireContext(), R.string.error_register, Toast.LENGTH_SHORT).show();
+                    String serverMessage = getServerErrorMessage(response);
+                    if (serverMessage != null && !serverMessage.isEmpty()) {
+                        Toast.makeText(requireContext(), serverMessage, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(requireContext(), R.string.error_register, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
@@ -169,5 +198,32 @@ public class RegisterFragment extends Fragment {
         btnRegister.setEnabled(!loading);
         btnRegister.setText(loading ? R.string.creating_account : R.string.create_account);
         progressRegister.setVisibility(loading ? View.VISIBLE : View.GONE);
+    }
+
+    private String getServerErrorMessage(Response<JsonObject> response) {
+        try {
+            if (response.errorBody() == null) return null;
+            String raw = response.errorBody().string();
+            if (raw == null || raw.trim().isEmpty()) return null;
+
+            JsonElement parsed = JsonParser.parseString(raw);
+            if (!parsed.isJsonObject()) return raw.trim();
+
+            JsonObject obj = parsed.getAsJsonObject();
+            if (obj.has("error") && !obj.get("error").isJsonNull()) {
+                return obj.get("error").getAsString();
+            }
+            for (String key : obj.keySet()) {
+                JsonElement value = obj.get(key);
+                if (value == null || value.isJsonNull()) continue;
+                if (value.isJsonArray() && value.getAsJsonArray().size() > 0) {
+                    return value.getAsJsonArray().get(0).getAsString();
+                }
+                return value.getAsString();
+            }
+        } catch (Exception e) {
+            Log.e("RegisterFragment", "Failed to parse error response", e);
+        }
+        return null;
     }
 }

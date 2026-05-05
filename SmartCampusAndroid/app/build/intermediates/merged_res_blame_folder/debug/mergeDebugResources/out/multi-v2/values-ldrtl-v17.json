@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-45:/values-ldrtl-v17/values-ldrtl-v17.xml",
+            "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-51:/values-ldrtl-v17/values-ldrtl-v17.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\5077d74a784d888a1ad8d517763ca918\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
+                    "source": "C:\\Users\\farah\\.gradle\\caches\\8.13\\transforms\\7878b9d2d674370d0c083ba4d8772364\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

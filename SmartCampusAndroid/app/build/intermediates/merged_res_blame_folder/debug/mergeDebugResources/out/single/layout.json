@@ -1,54 +1,62 @@
 [
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_profile.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_profile.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_events.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_events.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_login.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_login.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_login.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_login.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/item_carousel_image.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/item_carousel_image.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\activity_auth.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\activity_auth.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/item_event_card.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/item_event_card.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\item_stat_card.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\item_stat_card.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_onboarding.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_onboarding.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_register.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_register.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_map.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_map.xml"
+        "merged": "com.smartcampus.manouba.app-mergeDebugResources-52:/layout/item_event_card.xml",
+        "source": "com.smartcampus.manouba.app-main-55:/layout/item_event_card.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/activity_main.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/activity_main.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\activity_main.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/item_onboarding_page.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/item_onboarding_page.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\dialog_about_campus.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\dialog_about_campus.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_register.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_register.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\item_event_card.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\item_event_card.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/activity_auth.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/activity_auth.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\item_carousel_image.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\item_carousel_image.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/dialog_about_campus.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/dialog_about_campus.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_map.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_map.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/item_stat_card.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/item_stat_card.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_profile.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_profile.xml"
     },
     {
-        "merged": "com.smartcampus.manouba.app-mergeDebugResources-46:/layout/fragment_dashboard.xml",
-        "source": "com.smartcampus.manouba.app-main-49:/layout/fragment_dashboard.xml"
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\item_onboarding_page.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\item_onboarding_page.xml"
+    },
+    {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_dashboard.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_dashboard.xml"
+    },
+    {
+        "merged": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-mergeDebugResources-52:\\layout\\fragment_onboarding.xml",
+        "source": "C:\\Users\\farah\\.gradle\\daemon\\8.13\\com.smartcampus.manouba.app-main-55:\\layout\\fragment_onboarding.xml"
     }
 ]

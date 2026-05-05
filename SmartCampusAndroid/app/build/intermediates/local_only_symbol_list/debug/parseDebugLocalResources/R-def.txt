@@ -6,6 +6,7 @@ anim slide_in_left
 anim slide_in_right
 anim slide_out_left
 anim slide_out_right
+array filter_options
 color accent
 color accent_dark
 color accent_light
@@ -43,6 +44,8 @@ color primary_light
 color secondary
 color secondary_dark
 color secondary_light
+color status_finished
+color status_upcoming
 color success
 color surface
 color text_hint
@@ -84,6 +87,9 @@ drawable bg_icon_circle_amber
 drawable bg_icon_circle_blue
 drawable bg_icon_circle_green
 drawable bg_input_field
+drawable bg_status_finished
+drawable bg_status_upcoming
+drawable career_fair_3_0
 drawable centre_de_publication
 drawable cultureday
 drawable ensi
@@ -93,9 +99,13 @@ drawable gradient_bottom_fade
 drawable gradient_primary
 drawable greenspaces
 drawable hackaton_uma
+drawable ic_date
+drawable ic_finished
 drawable ic_launcher_background
 drawable ic_launcher_foreground
 drawable ic_smart_campus_logo
+drawable ic_status_dot
+drawable ic_upcoming
 drawable image2
 drawable image3
 drawable image33
@@ -107,8 +117,10 @@ drawable isamm
 drawable iscae
 drawable isd
 drawable logo_uma
+drawable mse_hack_1_0
 drawable networkingday
 drawable rectorat_image
+drawable robocup_ensi_8
 drawable shape_indicator
 drawable shape_indicator_active
 drawable symposium
@@ -130,12 +142,14 @@ id btn_sign_up
 id btn_skip
 id btn_toggle_confirm
 id btn_toggle_password
+id btn_view_event
 id card_login
 id dashboardFragment
 id et_confirm_password
 id et_email
 id et_name
 id et_password
+id eventsFragment
 id img_logo
 id img_onboarding
 id iv_carousel
@@ -160,11 +174,13 @@ id progress_register
 id registerFragment
 id rv_events
 id rv_stats
+id spinner_filter
 id spinner_university
 id tv_caption
 id tv_email
 id tv_event_date
 id tv_event_description
+id tv_event_status
 id tv_event_subtitle
 id tv_event_title
 id tv_name
@@ -180,6 +196,7 @@ layout activity_auth
 layout activity_main
 layout dialog_about_campus
 layout fragment_dashboard
+layout fragment_events
 layout fragment_login
 layout fragment_map
 layout fragment_onboarding
@@ -213,8 +230,10 @@ string error_network
 string error_password_length
 string error_passwords_mismatch
 string error_register
+string event_image
 string events
 string favorites
+string filter_by_location
 string forgot_password
 string full_name_hint
 string get_started
@@ -235,6 +254,7 @@ string logout
 string logout_confirm
 string my_profile
 string nav_dashboard
+string nav_events
 string nav_map
 string nav_profile
 string next
@@ -256,6 +276,8 @@ string send_report
 string settings
 string sign_up
 string skip
+string status_finished
+string status_upcoming
 string student
 string uni_ensi
 string uni_esct
@@ -267,6 +289,7 @@ string uni_iscae
 string uni_isd
 string uni_other
 string university_name
+string view_details
 string welcome_back
 style SectionTitle
 style Theme.SmartCampus

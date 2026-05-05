@@ -69,4 +69,12 @@ public class SharedPrefManager {
                 .remove(Constants.KEY_USER_ID)
                 .apply();
     }
+
+    public int getLastEventId() {
+        return prefs.getInt(Constants.KEY_LAST_EVENT_ID, 0);
+    }
+
+    public void setLastEventId(int eventId) {
+        prefs.edit().putInt(Constants.KEY_LAST_EVENT_ID, eventId).apply();
+    }
 }

@@ -8,9 +8,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.smartcampus.manouba.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -18,7 +19,10 @@ import java.lang.String;
 
 public final class ItemEventCardBinding implements ViewBinding {
   @NonNull
-  private final CardView rootView;
+  private final MaterialCardView rootView;
+
+  @NonNull
+  public final MaterialButton btnViewEvent;
 
   @NonNull
   public final ImageView ivEventImage;
@@ -30,25 +34,32 @@ public final class ItemEventCardBinding implements ViewBinding {
   public final TextView tvEventDescription;
 
   @NonNull
+  public final TextView tvEventStatus;
+
+  @NonNull
   public final TextView tvEventSubtitle;
 
   @NonNull
   public final TextView tvEventTitle;
 
-  private ItemEventCardBinding(@NonNull CardView rootView, @NonNull ImageView ivEventImage,
+  private ItemEventCardBinding(@NonNull MaterialCardView rootView,
+      @NonNull MaterialButton btnViewEvent, @NonNull ImageView ivEventImage,
       @NonNull TextView tvEventDate, @NonNull TextView tvEventDescription,
-      @NonNull TextView tvEventSubtitle, @NonNull TextView tvEventTitle) {
+      @NonNull TextView tvEventStatus, @NonNull TextView tvEventSubtitle,
+      @NonNull TextView tvEventTitle) {
     this.rootView = rootView;
+    this.btnViewEvent = btnViewEvent;
     this.ivEventImage = ivEventImage;
     this.tvEventDate = tvEventDate;
     this.tvEventDescription = tvEventDescription;
+    this.tvEventStatus = tvEventStatus;
     this.tvEventSubtitle = tvEventSubtitle;
     this.tvEventTitle = tvEventTitle;
   }
 
   @Override
   @NonNull
-  public CardView getRoot() {
+  public MaterialCardView getRoot() {
     return rootView;
   }
 
@@ -73,6 +84,12 @@ public final class ItemEventCardBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btn_view_event;
+      MaterialButton btnViewEvent = ViewBindings.findChildViewById(rootView, id);
+      if (btnViewEvent == null) {
+        break missingId;
+      }
+
       id = R.id.iv_event_image;
       ImageView ivEventImage = ViewBindings.findChildViewById(rootView, id);
       if (ivEventImage == null) {
@@ -91,6 +108,12 @@ public final class ItemEventCardBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tv_event_status;
+      TextView tvEventStatus = ViewBindings.findChildViewById(rootView, id);
+      if (tvEventStatus == null) {
+        break missingId;
+      }
+
       id = R.id.tv_event_subtitle;
       TextView tvEventSubtitle = ViewBindings.findChildViewById(rootView, id);
       if (tvEventSubtitle == null) {
@@ -103,8 +126,8 @@ public final class ItemEventCardBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemEventCardBinding((CardView) rootView, ivEventImage, tvEventDate,
-          tvEventDescription, tvEventSubtitle, tvEventTitle);
+      return new ItemEventCardBinding((MaterialCardView) rootView, btnViewEvent, ivEventImage,
+          tvEventDate, tvEventDescription, tvEventStatus, tvEventSubtitle, tvEventTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

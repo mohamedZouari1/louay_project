@@ -91,6 +91,7 @@ animator nav_default_enter_anim
 animator nav_default_exit_anim
 animator nav_default_pop_enter_anim
 animator nav_default_pop_exit_anim
+array filter_options
 attr SharedValue
 attr SharedValueId
 attr action
@@ -1398,7 +1399,11 @@ attr yearStyle
 attr yearTodayStyle
 bool abc_action_bar_embed_tabs
 bool abc_config_actionMenuItemAllCaps
+bool enable_system_alarm_service_default
+bool enable_system_foreground_service_default
+bool enable_system_job_service_default
 bool mtrl_btn_textappearance_all_caps
+bool workmanager_test_configuration
 color abc_background_cache_hint_selector_material_dark
 color abc_background_cache_hint_selector_material_light
 color abc_btn_colored_borderless_text_material
@@ -2198,6 +2203,8 @@ color secondary_text_default_material_dark
 color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
+color status_finished
+color status_upcoming
 color success
 color surface
 color switch_thumb_disabled_material_dark
@@ -3125,6 +3132,8 @@ drawable bg_icon_circle_amber
 drawable bg_icon_circle_blue
 drawable bg_icon_circle_green
 drawable bg_input_field
+drawable bg_status_finished
+drawable bg_status_upcoming
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3133,6 +3142,7 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable career_fair_3_0
 drawable centre_de_publication
 drawable cultureday
 drawable design_fab_background
@@ -3156,6 +3166,8 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_date
+drawable ic_finished
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_background
 drawable ic_launcher_foreground
@@ -3168,6 +3180,8 @@ drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_search_black_24
 drawable ic_smart_campus_logo
+drawable ic_status_dot
+drawable ic_upcoming
 drawable image2
 drawable image3
 drawable image33
@@ -3200,6 +3214,7 @@ drawable material_ic_keyboard_arrow_previous_black_24dp
 drawable material_ic_keyboard_arrow_right_black_24dp
 drawable material_ic_menu_arrow_down_black_24dp
 drawable material_ic_menu_arrow_up_black_24dp
+drawable mse_hack_1_0
 drawable mtrl_bottomsheet_drag_handle
 drawable mtrl_checkbox_button
 drawable mtrl_checkbox_button_checked_unchecked
@@ -3253,6 +3268,7 @@ drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
 drawable rectorat_image
+drawable robocup_ensi_8
 drawable shape_indicator
 drawable shape_indicator_active
 drawable symposium
@@ -3377,6 +3393,7 @@ id btn_sign_up
 id btn_skip
 id btn_toggle_confirm
 id btn_toggle_password
+id btn_view_event
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -3466,6 +3483,7 @@ id et_confirm_password
 id et_email
 id et_name
 id et_password
+id eventsFragment
 id exitUntilCollapsed
 id expand_activities_button
 id expanded_menu
@@ -3730,6 +3748,7 @@ id software
 id south
 id spacer
 id special_effects_controller_view_tag
+id spinner_filter
 id spinner_university
 id spline
 id split_action_bar
@@ -3802,6 +3821,7 @@ id tv_caption
 id tv_email
 id tv_event_date
 id tv_event_description
+id tv_event_status
 id tv_event_subtitle
 id tv_event_title
 id tv_name
@@ -3971,6 +3991,7 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout dialog_about_campus
 layout fragment_dashboard
+layout fragment_events
 layout fragment_login
 layout fragment_map
 layout fragment_onboarding
@@ -4117,11 +4138,13 @@ string error_network
 string error_password_length
 string error_passwords_mismatch
 string error_register
+string event_image
 string events
 string exposed_dropdown_menu_content_description
 string fab_transformation_scrim_behavior
 string fab_transformation_sheet_behavior
 string favorites
+string filter_by_location
 string forgot_password
 string full_name_hint
 string get_started
@@ -4247,6 +4270,7 @@ string my_profile
 string nav_app_bar_navigate_up_description
 string nav_app_bar_open_drawer_description
 string nav_dashboard
+string nav_events
 string nav_map
 string nav_profile
 string next
@@ -4280,6 +4304,8 @@ string side_sheet_behavior
 string sign_up
 string skip
 string status_bar_notification_info_overflow
+string status_finished
+string status_upcoming
 string student
 string uni_ensi
 string uni_esct
@@ -4291,6 +4317,7 @@ string uni_iscae
 string uni_isd
 string uni_other
 string university_name
+string view_details
 string welcome_back
 style AlertDialog_AppCompat
 style AlertDialog_AppCompat_Light

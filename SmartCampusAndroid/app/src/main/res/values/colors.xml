@@ -39,6 +39,8 @@
     <color name="error">#F44336</color>
     <color name="warning">#FF9800</color>
     <color name="info">#2196F3</color>
+    <color name="status_finished">#F44336</color>
+    <color name="status_upcoming">#4CAF50</color>
 
     <!-- Gradients -->
     <color name="gradient_start">#000051</color>

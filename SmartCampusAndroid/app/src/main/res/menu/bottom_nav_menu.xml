@@ -9,6 +9,10 @@
         android:icon="@android:drawable/ic_dialog_map"
         android:title="@string/nav_map" />
     <item
+        android:id="@+id/eventsFragment"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="@string/nav_events" />
+    <item
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_myplaces"
         android:title="@string/nav_profile" />

@@ -12,15 +12,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonObject;
 import com.smartcampus.manouba.R;
-import com.smartcampus.manouba.adapters.EventsAdapter;
 import com.smartcampus.manouba.adapters.ImageCarouselAdapter;
 import com.smartcampus.manouba.adapters.StatsAdapter;
+import com.smartcampus.manouba.model.Event;
 import com.smartcampus.manouba.network.RetrofitClient;
 import com.smartcampus.manouba.utils.SharedPrefManager;
 import retrofit2.Call;
@@ -34,7 +33,7 @@ public class DashboardFragment extends Fragment {
 
     private ViewPager2 viewPagerCarousel;
     private LinearLayout carouselIndicators;
-    private RecyclerView rvStats, rvEvents;
+    private RecyclerView rvStats;
     private Handler autoScrollHandler;
     private Runnable autoScrollRunnable;
     private int currentCarouselPage = 0;
@@ -55,11 +54,9 @@ public class DashboardFragment extends Fragment {
         viewPagerCarousel = view.findViewById(R.id.viewpager_carousel);
         carouselIndicators = view.findViewById(R.id.layout_carousel_indicators);
         rvStats = view.findViewById(R.id.rv_stats);
-        rvEvents = view.findViewById(R.id.rv_events);
 
         setupCarousel();
         setupStats();
-        setupEvents();
         setupQuickActions(view);
 
         // Try to load from API, but fallback to static data if it fails
@@ -168,22 +165,6 @@ public class DashboardFragment extends Fragment {
         rvStats.setNestedScrollingEnabled(false);
     }
 
-    private void setupEvents() {
-        List<String[]> events = new ArrayList<>();
-        events.add(new String[]{"12th Edition of UMA Symposium", "Nature/Culture",
-                "Annual symposium exploring the intersection of nature and culture.", "Nov 12-14, 2025", "symposium"});
-        events.add(new String[]{"UMA Culture Day 25", "Carthage El Hadatha",
-                "Celebrate the rich cultural heritage of the University of Manouba community.", "Dec 10-11, 2025", "cultureday"});
-        events.add(new String[]{"Hackathon Green UMA", "CIFIPP Lac 2",
-                "Innovation hackathon focused on sustainable technology solutions.", "Jan 31 - Feb 1, 2026", "hackaton_uma"});
-        events.add(new String[]{"Manouba Networking Day", "Campus universitaire",
-                "Annual networking event connecting students with industry professionals.", "Apr 30, 2025", "networkingday"});
-
-        rvEvents.setLayoutManager(new LinearLayoutManager(requireContext(),
-                LinearLayoutManager.HORIZONTAL, false));
-        rvEvents.setAdapter(new EventsAdapter(events));
-    }
-
     private void setupQuickActions(View view) {
         View btnAbout = view.findViewById(R.id.btn_about_campus);
         View btnReport = view.findViewById(R.id.btn_report_issue);
@@ -249,32 +230,6 @@ public class DashboardFragment extends Fragment {
                 }
             });
 
-            /* 
-            // Disabled API events fetch to ensure hardcoded events with correct images are shown
-            RetrofitClient.getInstance(token).getApi().getEvents().enqueue(new Callback<List<JsonObject>>() {
-                @Override
-                public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
-                    if (!isAdded()) return;
-                    if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                        List<String[]> apiEvents = new ArrayList<>();
-                        for (JsonObject event : response.body()) {
-                            String title = event.has("title") ? event.get("title").getAsString() : "";
-                            String subtitle = event.has("subtitle") ? event.get("subtitle").getAsString() : "";
-                            String desc = event.has("description") ? event.get("description").getAsString() : "";
-                            String date = event.has("date_display") ? event.get("date_display").getAsString() : "";
-                            String img = event.has("image_name") ? event.get("image_name").getAsString() : "";
-                            apiEvents.add(new String[]{title, subtitle, desc, date, img});
-                        }
-                        if (rvEvents != null) rvEvents.setAdapter(new EventsAdapter(apiEvents));
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                    // Keep default static data
-                }
-            });
-            */
         } catch (Exception e) {
             e.printStackTrace();
         }

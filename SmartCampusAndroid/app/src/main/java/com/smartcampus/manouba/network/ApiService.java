@@ -1,6 +1,7 @@
 package com.smartcampus.manouba.network;
 
 import com.google.gson.JsonObject;
+import com.smartcampus.manouba.model.Event;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public interface ApiService {
 
     // Events
     @GET("events/")
-    Call<List<JsonObject>> getEvents();
+    Call<List<Event>> getEvents();
 
     // Stats
     @GET("stats/")

@@ -1,10 +1,27 @@
 {
     "logs": [
         {
-            "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-45:/values-bs/values-bs.xml",
+            "outputFile": "com.smartcampus.manouba.app-mergeDebugResources-51:/values-bs/values-bs.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\5077d74a784d888a1ad8d517763ca918\\transformed\\material-1.11.0\\res\\values-bs\\values-bs.xml",
+                    "source": "C:\\Users\\farah\\.gradle\\caches\\8.13\\transforms\\0b8a29286c7f32bf566e8243298d6683\\transformed\\navigation-ui-2.7.6\\res\\values-bs\\values-bs.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,158",
+                        "endColumns": "102,124",
+                        "endOffsets": "153,278"
+                    },
+                    "to": {
+                        "startLines": "108,109",
+                        "startColumns": "4,4",
+                        "startOffsets": "9279,9382",
+                        "endColumns": "102,124",
+                        "endOffsets": "9377,9502"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\farah\\.gradle\\caches\\8.13\\transforms\\7878b9d2d674370d0c083ba4d8772364\\transformed\\material-1.11.0\\res\\values-bs\\values-bs.xml",
                     "from": {
                         "startLines": "2,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +40,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\2d0fb8781f2609c838ef3ce8332ca072\\transformed\\appcompat-1.6.1\\res\\values-bs\\values-bs.xml",
+                    "source": "C:\\Users\\farah\\.gradle\\caches\\8.13\\transforms\\979674ec219a6c231bfc3fafe0eb830c\\transformed\\appcompat-1.6.1\\res\\values-bs\\values-bs.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -40,24 +57,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\be0416002364baf83ed4c888f303a236\\transformed\\navigation-ui-2.7.6\\res\\values-bs\\values-bs.xml",
-                    "from": {
-                        "startLines": "2,3",
-                        "startColumns": "4,4",
-                        "startOffsets": "55,158",
-                        "endColumns": "102,124",
-                        "endOffsets": "153,278"
-                    },
-                    "to": {
-                        "startLines": "108,109",
-                        "startColumns": "4,4",
-                        "startOffsets": "9279,9382",
-                        "endColumns": "102,124",
-                        "endOffsets": "9377,9502"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\AORUS\\.gradle\\caches\\8.12\\transforms\\fb2ee4e711893a7c76d618902cc3fc5a\\transformed\\core-1.12.0\\res\\values-bs\\values-bs.xml",
+                    "source": "C:\\Users\\farah\\.gradle\\caches\\8.13\\transforms\\4fb61e00bfae05674f57e247b4f142a9\\transformed\\core-1.12.0\\res\\values-bs\\values-bs.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
