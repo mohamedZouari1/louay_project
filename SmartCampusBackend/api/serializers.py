@@ -179,12 +179,17 @@ class UserSearchSerializer(serializers.ModelSerializer):
     following_count = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
 
+    full_name = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = [
-            'id', 'first_name', 'last_name', 'role', 'university',
+            'id', 'first_name', 'last_name', 'full_name', 'role', 'university',
             'avatar_color', 'avatar', 'bio', 'followers_count', 'following_count'
         ]
+
+    def get_full_name(self, obj):
+        name = f"{obj.first_name} {obj.last_name}".strip()
+        return name if name else obj.username
 
     def get_role(self, obj):
         try: return obj.profile.role

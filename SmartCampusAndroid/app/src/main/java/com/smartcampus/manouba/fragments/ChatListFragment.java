@@ -88,7 +88,11 @@ public class ChatListFragment extends Fragment {
                             for (int i = 0; i < parts.size(); i++) {
                                 com.google.gson.JsonObject p = parts.get(i).getAsJsonObject();
                                 if (p.get("id").getAsInt() != myId) {
-                                    name = p.get("first_name").getAsString() + " " + p.get("last_name").getAsString();
+                                    if (p.has("full_name") && !p.get("full_name").isJsonNull()) {
+                                        name = p.get("full_name").getAsString();
+                                    } else {
+                                        name = p.get("first_name").getAsString() + " " + p.get("last_name").getAsString();
+                                    }
                                     otherUserId = p.get("id").getAsInt();
                                     break;
                                 }

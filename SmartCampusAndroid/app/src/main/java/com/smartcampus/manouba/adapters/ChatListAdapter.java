@@ -45,10 +45,18 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ViewHo
         holder.tvTime.setText(conversation.getTime());
 
         // Set initials
+        String name = conversation.getName();
         String initials = "";
-        String[] parts = conversation.getName().split(" ");
-        if (parts.length > 0) initials += parts[0].charAt(0);
-        if (parts.length > 1) initials += parts[1].charAt(0);
+        if (name != null && !name.trim().isEmpty()) {
+            String[] parts = name.trim().split("\\s+");
+            if (parts.length > 0 && !parts[0].isEmpty()) {
+                initials += parts[0].charAt(0);
+            }
+            if (parts.length > 1 && !parts[1].isEmpty()) {
+                initials += parts[1].charAt(0);
+            }
+        }
+        if (initials.isEmpty()) initials = "?";
         holder.tvInitials.setText(initials.toUpperCase());
 
         // Online indicator
