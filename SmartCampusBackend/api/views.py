@@ -29,6 +29,9 @@ def register_view(request):
             'token': token.key,
             'user': UserSerializer(user).data,
         }, status=status.HTTP_201_CREATED)
+    
+    # Print errors to the console for debugging on Render
+    print(f"DEBUG: Registration failed. Errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
