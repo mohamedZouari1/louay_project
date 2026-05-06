@@ -45,40 +45,21 @@ class Command(BaseCommand):
     def load_events(self):
         Event.objects.all().delete()
         events = [
-            {
-                'title': '12th Edition of UMA Symposium',
-                'subtitle': 'Nature/Culture',
-                'description': 'Annual symposium exploring the intersection of nature and culture in contemporary society.',
-                'date_display': 'Nov 12-14, 2025',
-                'image_name': 'symposium.gif',
-                'order': 1,
-            },
-            {
-                'title': 'UMA Culture Day 25',
-                'subtitle': 'Carthage El Hadatha',
-                'description': 'Celebrate the rich cultural heritage and diversity of the University of Manouba community.',
-                'date_display': 'Dec 10-11, 2025',
-                'image_name': 'cultureday.jpg',
-                'order': 2,
-            },
-            {
-                'title': 'Hackathon Green UMA',
-                'subtitle': 'CIFIPP Lac 2',
-                'description': 'Innovation hackathon focused on sustainable technology solutions and environmental challenges.',
-                'date_display': 'Jan 31 - Feb 1, 2026',
-                'location': 'Centre International de Formation des Formateurs et de l\'Innovation Pédagogique (CIFFIP)',
-                'image_name': 'hackaton_uma.png',
-                'order': 3,
-            },
-            {
-                'title': '6th Edition of Manouba Networking Day (MND\'25)',
-                'subtitle': 'Campus universitaire de la Manouba',
-                'description': 'Annual networking event connecting students with industry professionals and alumni.',
-                'date_display': 'Apr 30, 2025',
-                'location': 'Campus universitaire de la Manouba',
-                'image_name': 'networkingday.jpg',
-                'order': 4,
-            },
+            {'title': '12th Edition of UMA Symposium', 'subtitle': 'Nature/Culture', 'description': 'Annual symposium exploring nature and culture.', 'date_display': 'Nov 12-14, 2025', 'image_name': 'symposium', 'order': 1},
+            {'title': 'UMA Culture Day 25', 'subtitle': 'Carthage El Hadatha', 'description': 'Celebrating cultural heritage and diversity.', 'date_display': 'Dec 10-11, 2025', 'image_name': 'cultureday', 'order': 2},
+            {'title': 'TuniHack 11.0', 'subtitle': 'National Hackathon', 'description': 'The biggest student hackathon in Tunisia returns for its 11th edition.', 'date_display': 'Feb 20-22, 2026', 'image_name': 'tunihack_11_0', 'order': 3},
+            {'title': 'RoboCup ENSI 8', 'subtitle': 'Robotics Competition', 'description': 'Eighth edition of the prestigious national robotics challenge.', 'date_display': 'March 15, 2026', 'image_name': 'robocup_ensi_8', 'order': 4},
+            {'title': 'Hackathon Green UMA', 'subtitle': 'Sustainable Tech', 'description': 'Focusing on environmental challenges and green solutions.', 'date_display': 'Jan 31 - Feb 1, 2026', 'image_name': 'hackaton_uma', 'order': 5},
+            {'title': 'Career Fair 3.0', 'subtitle': 'Professional Networking', 'description': 'Connect with top tech companies and secure your future career.', 'date_display': 'April 5, 2026', 'image_name': 'career_fair_3_0', 'order': 6},
+            {'title': 'Code Conquer 3.0', 'subtitle': 'Coding Challenge', 'description': 'A high-intensity competitive programming event.', 'date_display': 'May 12, 2026', 'image_name': 'code_conquer_3_0', 'order': 7},
+            {'title': 'ESENet Talent Fair 7', 'subtitle': 'Job Fair', 'description': 'The annual talent meeting at the Higher School of Digital Economy.', 'date_display': 'May 20, 2026', 'image_name': 'esenet_talent_fair_7', 'order': 8},
+            {'title': 'GeoDrone Day', 'subtitle': 'Geospatial Innovation', 'description': 'Exploring the use of drones in mapping and geospatial science.', 'date_display': 'June 2, 2026', 'image_name': 'geodrone_day', 'order': 9},
+            {'title': 'MSE Hack 1.0', 'subtitle': 'Serious Games Hackathon', 'description': 'Design and build the next generation of educational serious games.', 'date_display': 'June 18-20, 2026', 'image_name': 'mse_hack_1_0', 'order': 10},
+            {'title': 'Orbyx ML Challenge', 'subtitle': 'Machine Learning', 'description': 'Deep dive into AI and ML with real-world datasets.', 'date_display': 'July 5, 2026', 'image_name': 'orbyx_ml_challenge', 'order': 11},
+            {'title': 'Green Fortnight', 'subtitle': 'Environmental Awareness', 'description': 'Two weeks of activities dedicated to campus ecology.', 'date_display': 'October 1-15, 2025', 'image_name': 'green_fortnight', 'order': 12},
+            {'title': 'ESEN Brain Games Expo', 'subtitle': 'Gaming & Strategy', 'description': 'A festival of strategic thinking and digital gaming.', 'date_display': 'October 25, 2025', 'image_name': 'esen_brain_games_expo', 'order': 13},
+            {'title': 'Recursia 2025', 'subtitle': 'Computing Festival', 'description': 'Celebrating the art of algorithms and recursion.', 'date_display': 'December 5, 2025', 'image_name': 'recursia', 'order': 14},
+            {'title': 'Manouba Networking Day', 'subtitle': 'Alumni Meeting', 'description': 'Annual networking event connecting students with alumni.', 'date_display': 'April 30, 2025', 'image_name': 'networkingday', 'order': 15},
         ]
         for e in events:
             Event.objects.create(**e)
