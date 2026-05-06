@@ -26,15 +26,50 @@ class Command(BaseCommand):
 
         # 2. Events
         events = [
-            {'title': 'Annual Tech Symposium', 'subtitle': 'The future of GeoAI', 'desc': 'Join us for a full day of talks about ecosystem restoration and AI.', 'date': 'June 15, 2026', 'order': 1},
-            {'title': 'Ecosystem Restoration Hackathon', 'subtitle': 'Build for the planet', 'desc': 'A 48-hour challenge to build digital tools for a greener campus.', 'date': 'July 10-12, 2026', 'order': 2},
-            {'title': 'Career Fair 2026', 'subtitle': 'Meet your future employers', 'desc': 'Networking event with top technology companies in Tunisia.', 'date': 'September 5, 2026', 'order': 3},
+            {
+                'title': '12th Edition of UMA Symposium',
+                'subtitle': 'Nature/Culture',
+                'desc': 'Annual symposium exploring the intersection of nature and culture.',
+                'date': 'Nov 12-14, 2025',
+                'img': 'symposium',
+                'order': 1
+            },
+            {
+                'title': 'UMA Culture Day 25',
+                'subtitle': 'Carthage El Hadatha',
+                'desc': "Celebrate the rich cultural heritage of the University of Manouba community.",
+                'date': 'Dec 10-11, 2025',
+                'img': 'cultureday',
+                'order': 2
+            },
+            {
+                'title': 'Hackathon Green UMA',
+                'subtitle': 'CIFIPP Lac 2',
+                'desc': 'Innovation hackathon focused on sustainable technology solutions.',
+                'date': 'Jan 31 - Feb 1, 2026',
+                'img': 'hackaton_uma',
+                'order': 3
+            },
+            {
+                'title': 'Manouba Networking Day',
+                'subtitle': 'Campus universitaire',
+                'desc': 'Annual networking event connecting students with industry professionals.',
+                'date': 'Apr 30, 2025',
+                'img': 'networkingday',
+                'order': 4
+            },
         ]
 
         for ev in events:
             Event.objects.get_or_create(
                 title=ev['title'],
-                defaults={'subtitle': ev['subtitle'], 'description': ev['desc'], 'date_display': ev['date'], 'order': ev['order']}
+                defaults={
+                    'subtitle': ev['subtitle'],
+                    'description': ev['desc'],
+                    'date_display': ev['date'],
+                    'image_name': ev['img'],
+                    'order': ev['order']
+                }
             )
 
         # 3. Stats
