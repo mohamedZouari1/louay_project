@@ -436,4 +436,18 @@ def update_profile_image(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping_view(request):
-    return Response({'status': 'online', 'message': 'Smart Campus Backend is working!'})
+    try:
+        user_count = User.objects.count()
+        return Response({
+            'status': 'online',
+            'database': 'connected',
+            'users': user_count,
+            'message': 'Smart Campus Backend is working!'
+        })
+    except Exception as e:
+        return Response({
+            'status': 'online',
+            'database': 'error',
+            'error': str(e),
+            'message': 'Backend is up but database is unreachable.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
