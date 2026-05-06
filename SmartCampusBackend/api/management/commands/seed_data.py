@@ -26,38 +26,21 @@ class Command(BaseCommand):
 
         # 2. Events
         events = [
-            {
-                'title': '12th Edition of UMA Symposium',
-                'subtitle': 'Nature/Culture',
-                'desc': 'Annual symposium exploring the intersection of nature and culture.',
-                'date': 'Nov 12-14, 2025',
-                'img': 'symposium',
-                'order': 1
-            },
-            {
-                'title': 'UMA Culture Day 25',
-                'subtitle': 'Carthage El Hadatha',
-                'desc': "Celebrate the rich cultural heritage of the University of Manouba community.",
-                'date': 'Dec 10-11, 2025',
-                'img': 'cultureday',
-                'order': 2
-            },
-            {
-                'title': 'Hackathon Green UMA',
-                'subtitle': 'CIFIPP Lac 2',
-                'desc': 'Innovation hackathon focused on sustainable technology solutions.',
-                'date': 'Jan 31 - Feb 1, 2026',
-                'img': 'hackaton_uma',
-                'order': 3
-            },
-            {
-                'title': 'Manouba Networking Day',
-                'subtitle': 'Campus universitaire',
-                'desc': 'Annual networking event connecting students with industry professionals.',
-                'date': 'Apr 30, 2025',
-                'img': 'networkingday',
-                'order': 4
-            },
+            {'title': '12th Edition of UMA Symposium', 'subtitle': 'Nature/Culture', 'desc': 'Annual symposium exploring nature and culture.', 'date': 'Nov 12-14, 2025', 'img': 'symposium', 'order': 1},
+            {'title': 'UMA Culture Day 25', 'subtitle': 'Carthage El Hadatha', 'desc': 'Celebrating cultural heritage and diversity.', 'date': 'Dec 10-11, 2025', 'img': 'cultureday', 'order': 2},
+            {'title': 'TuniHack 11.0', 'subtitle': 'National Hackathon', 'desc': 'The biggest student hackathon in Tunisia returns for its 11th edition.', 'date': 'Feb 20-22, 2026', 'img': 'tunihack_11_0', 'order': 3},
+            {'title': 'RoboCup ENSI 8', 'subtitle': 'Robotics Competition', 'desc': 'Eighth edition of the prestigious national robotics challenge.', 'date': 'March 15, 2026', 'img': 'robocup_ensi_8', 'order': 4},
+            {'title': 'Hackathon Green UMA', 'subtitle': 'Sustainable Tech', 'desc': 'Focusing on environmental challenges and green solutions.', 'date': 'Jan 31 - Feb 1, 2026', 'img': 'hackaton_uma', 'order': 5},
+            {'title': 'Career Fair 3.0', 'subtitle': 'Professional Networking', 'desc': 'Connect with top tech companies and secure your future career.', 'date': 'April 5, 2026', 'img': 'career_fair_3_0', 'order': 6},
+            {'title': 'Code Conquer 3.0', 'subtitle': 'Coding Challenge', 'desc': 'A high-intensity competitive programming event.', 'date': 'May 12, 2026', 'img': 'code_conquer_3_0', 'order': 7},
+            {'title': 'ESENet Talent Fair 7', 'subtitle': 'Job Fair', 'desc': 'The annual talent meeting at the Higher School of Digital Economy.', 'date': 'May 20, 2026', 'img': 'esenet_talent_fair_7', 'order': 8},
+            {'title': 'GeoDrone Day', 'subtitle': 'Geospatial Innovation', 'desc': 'Exploring the use of drones in mapping and geospatial science.', 'date': 'June 2, 2026', 'img': 'geodrone_day', 'order': 9},
+            {'title': 'MSE Hack 1.0', 'subtitle': 'Serious Games Hackathon', 'desc': 'Design and build the next generation of educational serious games.', 'date': 'June 18-20, 2026', 'img': 'mse_hack_1_0', 'order': 10},
+            {'title': 'Orbyx ML Challenge', 'subtitle': 'Machine Learning', 'desc': 'Deep dive into AI and ML with real-world datasets.', 'date': 'July 5, 2026', 'img': 'orbyx_ml_challenge', 'order': 11},
+            {'title': 'Green Fortnight', 'subtitle': 'Environmental Awareness', 'desc': 'Two weeks of activities dedicated to campus ecology.', 'date': 'October 1-15, 2025', 'img': 'green_fortnight', 'order': 12},
+            {'title': 'ESEN Brain Games Expo', 'subtitle': 'Gaming & Strategy', 'desc': 'A festival of strategic thinking and digital gaming.', 'date': 'October 25, 2025', 'img': 'esen_brain_games_expo', 'order': 13},
+            {'title': 'Recursia 2025', 'subtitle': 'Computing Festival', 'desc': 'Celebrating the art of algorithms and recursion.', 'date': 'December 5, 2025', 'img': 'recursia', 'order': 14},
+            {'title': 'Manouba Networking Day', 'subtitle': 'Alumni Meeting', 'desc': 'Annual networking event connecting students with alumni.', 'date': 'April 30, 2025', 'img': 'networkingday', 'order': 15},
         ]
 
         for ev in events:
