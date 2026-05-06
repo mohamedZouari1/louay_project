@@ -433,3 +433,7 @@ def update_profile_image(request):
         profile.save()
         return Response(UserSerializer(user, context={'request': request}).data)
     return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def ping_view(request):
+    return Response({'status': 'online', 'message': 'Smart Campus Backend is working!'})

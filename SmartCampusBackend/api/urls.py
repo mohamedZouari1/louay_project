@@ -39,4 +39,5 @@ urlpatterns = [
     path('chat/conversations/', views.chat_list_view, name='chat-list'),
     path('chat/messages/<int:pk>/', views.chat_messages_view, name='chat-messages'),
     path('profile/image/', views.update_profile_image, name='profile-image-update'),
+    path('ping/', views.ping_view, name='ping'),
 ]
