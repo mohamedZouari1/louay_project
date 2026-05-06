@@ -15,13 +15,14 @@ public class SocialPagerAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 1:  return new ComposePostFragment();
-            case 2:  return new SearchUsersFragment();
+            case 2:  return new ChatListFragment();
+            case 3:  return new SearchUsersFragment();
             default: return new FeedFragment();
         }
     }
 
     @Override
     public int getItemCount() {
-        return 3;
+        return 4;
     }
 }

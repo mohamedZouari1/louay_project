@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonObject;
 import com.smartcampus.manouba.R;
 import com.smartcampus.manouba.adapters.EventsAdapter;
+import com.smartcampus.manouba.model.Event;
 import com.smartcampus.manouba.adapters.ImageCarouselAdapter;
 import com.smartcampus.manouba.adapters.StatsAdapter;
 import com.smartcampus.manouba.network.RetrofitClient;
@@ -28,6 +30,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DashboardFragment extends Fragment {
@@ -61,6 +64,7 @@ public class DashboardFragment extends Fragment {
         setupStats();
         setupEvents();
         setupQuickActions(view);
+        setupProfileButton(view);
 
         // Try to load from API, but fallback to static data if it fails
         try {
@@ -70,17 +74,92 @@ public class DashboardFragment extends Fragment {
         }
     }
 
+    private void setupProfileButton(View view) {
+        View cardProfile = view.findViewById(R.id.card_student_profile);
+        TextView tvAvatar = view.findViewById(R.id.tv_dashboard_avatar);
+        com.google.android.material.imageview.ShapeableImageView ivAvatar = view.findViewById(R.id.iv_dashboard_avatar);
+        TextView tvGreeting = view.findViewById(R.id.tv_dashboard_greeting);
+        TextView tvName = view.findViewById(R.id.tv_dashboard_name);
+
+        if (cardProfile != null) {
+            String fullName = SharedPrefManager.getInstance(requireContext()).getUserName();
+            String firstName = "Student";
+            
+            if (fullName != null && !fullName.isEmpty()) {
+                String[] parts = fullName.trim().split(" ");
+                firstName = parts[0];
+                if (tvName != null) tvName.setText(fullName);
+                
+                // Set initials for avatar as fallback
+                String initials = "" + parts[0].charAt(0);
+                if (parts.length > 1 && !parts[1].isEmpty()) initials += parts[1].charAt(0);
+                if (tvAvatar != null) tvAvatar.setText(initials.toUpperCase());
+            }
+
+            if (tvGreeting != null) {
+                Calendar cal = Calendar.getInstance();
+                int hour = cal.get(Calendar.HOUR_OF_DAY);
+                String greeting;
+                if (hour < 12) greeting = "Good morning, ";
+                else if (hour < 18) greeting = "Good afternoon, ";
+                else greeting = "Good evening, ";
+                
+                tvGreeting.setText(greeting + firstName + "!");
+            }
+
+            cardProfile.setOnClickListener(v -> {
+                androidx.navigation.Navigation.findNavController(view).navigate(R.id.profileFragment);
+            });
+
+            loadMyProfile(tvAvatar, ivAvatar);
+        }
+    }
+
+    private void loadMyProfile(TextView tvAvatar, com.google.android.material.imageview.ShapeableImageView ivAvatar) {
+        int myId = SharedPrefManager.getInstance(requireContext()).getUserId();
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        if (myId == -1 || token == null) return;
+
+        RetrofitClient.getInstance(token).getApi().getUserProfile(myId).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && response.isSuccessful() && response.body() != null) {
+                    JsonObject body = response.body();
+                    JsonObject user = body.has("user") ? body.getAsJsonObject("user") : null;
+                    if (user != null && user.has("avatar") && !user.get("avatar").isJsonNull()) {
+                        String avatarUrl = user.get("avatar").getAsString();
+                        if (!avatarUrl.isEmpty()) {
+                            tvAvatar.setVisibility(View.GONE);
+                            ivAvatar.setVisibility(View.VISIBLE);
+                            com.bumptech.glide.Glide.with(requireContext())
+                                    .load(avatarUrl)
+                                    .centerCrop()
+                                    .into(ivAvatar);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {}
+        });
+    }
+
     private void setupCarousel() {
         int[] images = {
                 R.drawable.uma,
                 R.drawable.image2,
                 R.drawable.image44,
                 R.drawable.image33,
-                R.drawable.greenspaces
+                R.drawable.greenspaces,
+                R.drawable.career_fair_3_0,
+                R.drawable.tunihack_11_0,
+                R.drawable.robocup_ensi_8
         };
         String[] captions = {
                 "Main Campus Entrance", "Modern Learning Facilities",
-                "Student Life", "Innovation & Technology", "Campus Green Spaces"
+                "Student Life", "Innovation & Technology", "Campus Green Spaces",
+                "Career Fair 2025", "TuniHack 11.0", "RoboCup ENSI 8"
         };
 
         ImageCarouselAdapter adapter = new ImageCarouselAdapter(images, captions);
@@ -169,19 +248,28 @@ public class DashboardFragment extends Fragment {
     }
 
     private void setupEvents() {
-        List<String[]> events = new ArrayList<>();
-        events.add(new String[]{"12th Edition of UMA Symposium", "Nature/Culture",
-                "Annual symposium exploring the intersection of nature and culture.", "Nov 12-14, 2025", "symposium"});
-        events.add(new String[]{"UMA Culture Day 25", "Carthage El Hadatha",
-                "Celebrate the rich cultural heritage of the University of Manouba community.", "Dec 10-11, 2025", "cultureday"});
-        events.add(new String[]{"Hackathon Green UMA", "CIFIPP Lac 2",
-                "Innovation hackathon focused on sustainable technology solutions.", "Jan 31 - Feb 1, 2026", "hackaton_uma"});
-        events.add(new String[]{"Manouba Networking Day", "Campus universitaire",
-                "Annual networking event connecting students with industry professionals.", "Apr 30, 2025", "networkingday"});
+        List<Event> events = new ArrayList<>();
+        
+        events.add(createEvent("12th Edition of UMA Symposium", "Nature/Culture",
+                "Annual symposium exploring the intersection of nature and culture.", "Nov 12-14, 2025", "symposium"));
+        events.add(createEvent("UMA Culture Day 25", "Carthage El Hadatha",
+                "Celebrate the rich cultural heritage of the University of Manouba community.", "Dec 10-11, 2025", "cultureday"));
+        events.add(createEvent("Hackathon Green UMA", "CIFIPP Lac 2",
+                "Innovation hackathon focused on sustainable technology solutions.", "Jan 31 - Feb 1, 2026", "hackaton_uma"));
+        events.add(createEvent("Manouba Networking Day", "Campus universitaire",
+                "Annual networking event connecting students with industry professionals.", "Apr 30, 2025", "networkingday"));
 
         rvEvents.setLayoutManager(new LinearLayoutManager(requireContext(),
                 LinearLayoutManager.HORIZONTAL, false));
         rvEvents.setAdapter(new EventsAdapter(events));
+    }
+
+    private Event createEvent(String title, String subtitle, String desc, String date, String img) {
+        // Since Event is a model with private fields and no constructor (likely for GSON)
+        // We'll rely on our modified EventsAdapter to handle it, or add a constructor to Event.java
+        // Actually, let's see Event.java again to see if I can add a constructor or if I should use reflection/GSON.
+        // Better yet, I'll add a simple constructor to Event.java for local testing/static data.
+        return new Event(title, subtitle, desc, date, img, null);
     }
 
     private void setupQuickActions(View view) {
@@ -209,17 +297,53 @@ public class DashboardFragment extends Fragment {
     }
 
     private void showReportDialog() {
-        String[] issueTypes = {"Facilities & Infrastructure", "Accessibility",
-                "Safety & Security", "Technology & IT", "Other"};
+        String[] issueTypes = {"facilities", "accessibility", "safety", "technology", "other"};
+        String[] issueLabels = {"Facilities & Infrastructure", "Accessibility", "Safety & Security", "Technology & IT", "Other"};
+
+        final int[] selectedType = {0};
+
+        android.widget.EditText input = new android.widget.EditText(requireContext());
+        input.setHint("Describe the issue...");
+        input.setPadding(48, 32, 48, 32);
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Report an Issue")
-                .setSingleChoiceItems(issueTypes, 0, (d, which) -> {})
+                .setSingleChoiceItems(issueLabels, 0, (d, which) -> {
+                    selectedType[0] = which;
+                })
+                .setView(input)
                 .setPositiveButton("Submit", (d, which) -> {
-                    Toast.makeText(requireContext(), R.string.report_success, Toast.LENGTH_LONG).show();
+                    String desc = input.getText().toString().trim();
+                    if (desc.isEmpty()) {
+                        Toast.makeText(requireContext(), "Please provide a description", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    submitReport(issueTypes[selectedType[0]], desc);
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void submitReport(String type, String desc) {
+        JsonObject body = new JsonObject();
+        body.addProperty("issue_type", type);
+        body.addProperty("description", desc);
+        body.addProperty("location", "Campus Main");
+
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        RetrofitClient.getInstance(token).getApi().submitReport(body).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "Report submitted successfully! Administration will review it.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                if (isAdded()) Toast.makeText(requireContext(), "Failed to submit report. Please check your connection.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadDataFromApi() {
@@ -244,37 +368,21 @@ public class DashboardFragment extends Fragment {
                 }
 
                 @Override
-                public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                    // Keep default static data
-                }
+                public void onFailure(Call<List<JsonObject>> call, Throwable t) {}
             });
 
-            /* 
-            // Disabled API events fetch to ensure hardcoded events with correct images are shown
-            RetrofitClient.getInstance(token).getApi().getEvents().enqueue(new Callback<List<JsonObject>>() {
+            RetrofitClient.getInstance(token).getApi().getEvents().enqueue(new Callback<List<Event>>() {
                 @Override
-                public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                     if (!isAdded()) return;
                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                        List<String[]> apiEvents = new ArrayList<>();
-                        for (JsonObject event : response.body()) {
-                            String title = event.has("title") ? event.get("title").getAsString() : "";
-                            String subtitle = event.has("subtitle") ? event.get("subtitle").getAsString() : "";
-                            String desc = event.has("description") ? event.get("description").getAsString() : "";
-                            String date = event.has("date_display") ? event.get("date_display").getAsString() : "";
-                            String img = event.has("image_name") ? event.get("image_name").getAsString() : "";
-                            apiEvents.add(new String[]{title, subtitle, desc, date, img});
-                        }
-                        if (rvEvents != null) rvEvents.setAdapter(new EventsAdapter(apiEvents));
+                        if (rvEvents != null) rvEvents.setAdapter(new EventsAdapter(response.body()));
                     }
                 }
 
                 @Override
-                public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                    // Keep default static data
-                }
+                public void onFailure(Call<List<Event>> call, Throwable t) {}
             });
-            */
         } catch (Exception e) {
             e.printStackTrace();
         }

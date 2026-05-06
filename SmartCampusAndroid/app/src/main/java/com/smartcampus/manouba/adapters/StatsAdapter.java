@@ -52,13 +52,13 @@ public class StatsAdapter extends RecyclerView.Adapter<StatsAdapter.ViewHolder> 
 
     private int getIconForName(String name) {
         switch (name) {
-            case "people": return android.R.drawable.ic_menu_myplaces;
-            case "school": return android.R.drawable.ic_menu_info_details;
-            case "book": return android.R.drawable.ic_menu_agenda;
-            case "business": return android.R.drawable.ic_menu_sort_by_size;
-            case "globe": return android.R.drawable.ic_menu_mapmode;
-            case "flask": return android.R.drawable.ic_menu_manage;
-            default: return android.R.drawable.ic_menu_info_details;
+            case "people": return R.drawable.ic_stat_students;
+            case "school": return R.drawable.ic_stat_teachers;
+            case "book": return R.drawable.ic_stat_programs;
+            case "business": return R.drawable.ic_stat_institutions;
+            case "globe": return R.drawable.ic_stat_international;
+            case "flask": return R.drawable.ic_stat_research;
+            default: return R.drawable.ic_stat_teachers;
         }
     }
 

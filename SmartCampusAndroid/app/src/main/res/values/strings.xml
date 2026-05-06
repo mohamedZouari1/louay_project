@@ -70,6 +70,7 @@
     <string name="nav_social">Social</string>
     <string name="nav_wallet">Wallet</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_events">Events</string>
 
     <!-- Campus Wallet -->
     <string name="wallet_balance">Campus Wallet Balance</string>
@@ -133,4 +134,7 @@
     <string name="just_now">Just now</string>
     <string name="photo_removed">Photo removed</string>
     <string name="change_photo">Change Photo</string>
+    <string name="status_finished">Finished</string>
+    <string name="status_upcoming">Upcoming</string>
+    <string name="event_image">Event Image</string>
 </resources>

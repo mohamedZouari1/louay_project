@@ -18,15 +18,26 @@
         android:gravity="center_vertical"
         android:elevation="4dp">
 
-        <TextView
-            android:id="@+id/tv_compose_avatar"
+        <FrameLayout
             android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="@drawable/bg_avatar_circle" />
+            android:layout_height="38dp">
+            <TextView
+                android:id="@+id/tv_top_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_avatar_circle" />
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_top_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="0dp"
@@ -64,6 +75,47 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!-- Author info -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp">
+                    <TextView
+                        android:id="@+id/tv_compose_avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_avatar_circle" />
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/iv_compose_avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_compose_author_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:text="User Name"/>
+
+            </LinearLayout>
 
             <!-- Text input — no box, clean like LinkedIn -->
             <com.google.android.material.textfield.TextInputEditText
@@ -147,8 +199,9 @@
 
         <View android:layout_width="1dp" android:layout_height="24dp" android:background="#E0E0E0"/>
 
-        <!-- Video (decorative) -->
+        <!-- Document -->
         <LinearLayout
+            android:id="@+id/btn_attach_file"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
@@ -158,12 +211,12 @@
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_camera"
+                android:src="@drawable/ic_plus"
                 app:tint="#5F9B41"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" Video"
+                android:text=" File"
                 android:textColor="#5F9B41"
                 android:textSize="13sp"
                 android:textStyle="bold"/>
@@ -171,8 +224,9 @@
 
         <View android:layout_width="1dp" android:layout_height="24dp" android:background="#E0E0E0"/>
 
-        <!-- Anyone (audience) -->
+        <!-- Vocal -->
         <LinearLayout
+            android:id="@+id/btn_record_vocal"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
@@ -182,12 +236,12 @@
             <ImageView
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:src="@android:drawable/ic_menu_share"
+                android:src="@drawable/ic_send"
                 app:tint="#B24020"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" Anyone"
+                android:text=" Vocal"
                 android:textColor="#B24020"
                 android:textSize="13sp"
                 android:textStyle="bold"/>

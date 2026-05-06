@@ -1,81 +1,162 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="280dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="320dp"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/white">
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="10dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Event Image -->
-        <ImageView
-            android:id="@+id/iv_event_image"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:contentDescription="Event image"
-            android:scaleType="centerCrop" />
+            android:layout_height="200dp">
 
-        <!-- Event Date Badge -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/primary"
-            android:gravity="center"
-            android:padding="10dp">
+            <ImageView
+                android:id="@+id/iv_event_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/event_image"
+                android:scaleType="centerCrop"
+                tools:src="@drawable/cultureday" />
+
+            <!-- Gradient overlay for text readability -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/gradient_black_transparent" />
+
+            <TextView
+                android:id="@+id/tv_event_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_status_upcoming"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:elevation="4dp"
+                android:drawablePadding="4dp"
+                android:gravity="center"
+                tools:text="Upcoming" />
 
             <TextView
                 android:id="@+id/tv_event_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="12dp"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:drawablePadding="6dp" />
-        </LinearLayout>
+                android:elevation="4dp"
+                tools:text="Oct 19, 2025" />
 
-        <!-- Event Content -->
+            <TextView
+                android:id="@+id/tv_participants_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:backgroundTint="#80000000"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:elevation="4dp"
+                tools:text="42 going" />
+
+        </FrameLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="15dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="16dp">
 
             <TextView
                 android:id="@+id/tv_event_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="2"
+                android:maxLines="1"
                 android:textColor="@color/text_primary"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="2dp"
+                tools:text="Annual Symposium" />
 
             <TextView
                 android:id="@+id/tv_event_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:textStyle="italic"
-                android:layout_marginBottom="8dp" />
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:layout_marginBottom="8dp"
+                tools:text="University of Manouba" />
 
             <TextView
                 android:id="@+id/tv_event_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:maxLines="3"
-                android:textColor="@color/text_primary"
+                android:maxLines="2"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3" />
+                android:lineSpacingExtra="2dp"
+                tools:text="Join us for the most prestigious academic event of the year featuring speakers from around the world." />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_participate"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Participate"
+                    android:textSize="11sp"
+                    app:cornerRadius="10dp"
+                    app:icon="@drawable/ic_check"
+                    android:layout_marginEnd="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_interested"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Interested"
+                    android:textSize="11sp"
+                    app:cornerRadius="10dp"
+                    app:icon="@drawable/ic_plus" />
+
+            </LinearLayout>
+
         </LinearLayout>
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

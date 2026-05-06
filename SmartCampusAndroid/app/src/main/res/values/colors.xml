@@ -22,6 +22,7 @@
     <color name="gray">#757575</color>
     <color name="gray_light">#E0E0E0</color>
     <color name="gray_dark">#424242</color>
+    <color name="divider">#E0E0E0</color>
 
     <!-- Background -->
     <color name="background">#F5F5F5</color>
@@ -39,6 +40,8 @@
     <color name="error">#F44336</color>
     <color name="warning">#FF9800</color>
     <color name="info">#2196F3</color>
+    <color name="status_finished">#F44336</color>
+    <color name="status_upcoming">#4CAF50</color>
 
     <!-- Gradients -->
     <color name="gradient_start">#000051</color>

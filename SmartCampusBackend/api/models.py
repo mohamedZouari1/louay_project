@@ -28,6 +28,7 @@ class UserProfile(models.Model):
     # Social Hub additions
     bio = models.TextField(blank=True, default='')
     avatar_color = models.CharField(max_length=7, default='#1A237E')  # hex color
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
 
     def __str__(self):
@@ -86,6 +87,19 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+class EventRegistration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_registrations')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
+    is_interested = models.BooleanField(default=False)
+    is_attending = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'event')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event.title}"
 
 
 class Report(models.Model):
@@ -158,6 +172,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
     # post_type is automatically set from author's role on save
     post_type = models.CharField(max_length=10, choices=POST_TYPE_CHOICES, default='student')
+    repost_of = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -201,3 +216,53 @@ class UserFollow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} follows {self.following.username}"
+
+
+class PostComment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.author.username} on post #{self.post.id}"
+
+
+class Conversation(models.Model):
+    participants = models.ManyToManyField(User, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"Conversation {self.id} ({self.participants.count()} participants)"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    file = models.FileField(upload_to='chat_files/', blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['timestamp']
+
+class Repost(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reposts_done')
+    original_post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reposts_of_me')
+    content = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.author.username} shared post #{self.original_post.id}"

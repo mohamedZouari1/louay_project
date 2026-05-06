@@ -2,22 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/dashboardFragment"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:icon="@drawable/ic_nav_home"
         android:title="@string/nav_dashboard" />
     <item
         android:id="@+id/mapFragment"
-        android:icon="@android:drawable/ic_dialog_map"
+        android:icon="@drawable/ic_nav_map"
         android:title="@string/nav_map" />
     <item
         android:id="@+id/socialHubFragment"
-        android:icon="@android:drawable/ic_menu_share"
+        android:icon="@drawable/ic_nav_social"
         android:title="@string/nav_social" />
     <item
         android:id="@+id/walletFragment"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/ic_nav_wallet"
         android:title="@string/nav_wallet" />
     <item
-        android:id="@+id/profileFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="@string/nav_profile" />
+        android:id="@+id/eventsFragment"
+        android:icon="@drawable/ic_nav_events"
+        android:title="@string/nav_events" />
 </menu>

@@ -15,4 +15,5 @@ public class Constants {
     public static final String KEY_USER_UNIVERSITY = "user_university";
     public static final String KEY_USER_ID = "user_id";
     public static final String KEY_FIRST_LAUNCH = "first_launch";
+    public static final String KEY_LAST_EVENT_ID = "last_event_id";
 }

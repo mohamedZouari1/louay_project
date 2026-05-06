@@ -64,61 +64,51 @@ public class WalletFragment extends Fragment {
         updateBalanceUI();
         renderTransactions();
 
-        btnTopUp.setOnClickListener(v -> showTopUpDialog());
-        btnPay.setOnClickListener(v -> showPayDialog());
+        btnTopUp.setOnClickListener(v -> showTopUpBottomSheet());
+        btnPay.setOnClickListener(v -> {
+            androidx.navigation.Navigation.findNavController(v).navigate(R.id.scanQrFragment);
+        });
     }
 
-    private void showTopUpDialog() {
-        View dialogView = LayoutInflater.from(requireContext())
-                .inflate(android.R.layout.activity_list_item, null);
+    private void showTopUpBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog dialog = 
+                new com.google.android.material.bottomsheet.BottomSheetDialog(requireContext());
+        View sheetView = getLayoutInflater().inflate(R.layout.dialog_add_funds, null);
+        dialog.setContentView(sheetView);
 
-        EditText input = new EditText(requireContext());
-        input.setHint("Amount in TND");
-        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        input.setPadding(48, 32, 48, 32);
+        EditText etAmount = sheetView.findViewById(R.id.et_topup_amount);
+        EditText etCard = sheetView.findViewById(R.id.et_card_number);
+        EditText etExpiry = sheetView.findViewById(R.id.et_card_expiry);
+        EditText etCvv = sheetView.findViewById(R.id.et_card_cvv);
+        View btnConfirm = sheetView.findViewById(R.id.btn_confirm_topup);
 
-        new AlertDialog.Builder(requireContext(), R.style.Theme_SmartCampus_Dialog)
-                .setTitle("💳 Top Up Wallet")
-                .setMessage("Enter the amount to add:")
-                .setView(input)
-                .setPositiveButton("Add Funds", (dialog, which) -> {
-                    String val = input.getText().toString().trim();
-                    if (val.isEmpty()) return;
-                    try {
-                        double amount = Double.parseDouble(val);
-                        if (amount <= 0) { Toast.makeText(requireContext(), "Enter a positive amount.", Toast.LENGTH_SHORT).show(); return; }
-                        balance += amount;
-                        String time = new SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(new Date());
-                        transactions.add(0, new Transaction("Top Up", time, amount, "income"));
-                        saveBalance();
-                        updateBalanceUI();
-                        renderTransactions();
-                        Toast.makeText(requireContext(), String.format(Locale.getDefault(), "+%.2f TND added!", amount), Toast.LENGTH_SHORT).show();
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(requireContext(), "Invalid amount.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
+        btnConfirm.setOnClickListener(v -> {
+            String amountStr = etAmount.getText().toString();
+            String cardStr = etCard.getText().toString();
+            
+            if (amountStr.isEmpty() || cardStr.length() < 16) {
+                Toast.makeText(requireContext(), "Enter valid amount and 16-digit card number", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-    private void showPayDialog() {
-        String[] options = { "Café – Coffee & Snack (4.50 TND)", "Library – Printing (1.20 TND)",
-                "Restaurant – Lunch (7.00 TND)", "Custom amount…" };
+            try {
+                double amount = Double.parseDouble(amountStr);
+                balance += amount;
+                String time = new SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(new Date());
+                transactions.add(0, new Transaction("Top Up (Card ****" + cardStr.substring(12) + ")", time, amount, "income"));
+                
+                saveBalance();
+                updateBalanceUI();
+                renderTransactions();
+                
+                Toast.makeText(requireContext(), "Successfully added " + amount + " TND!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), "Error processing payment", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        new AlertDialog.Builder(requireContext(), R.style.Theme_SmartCampus_Dialog)
-                .setTitle("💰 Pay")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 3) {
-                        showCustomPayDialog();
-                    } else {
-                        double[] amounts = { 4.50, 1.20, 7.00 };
-                        String[] names   = { "Café – Coffee & Snack", "Library – Printing", "Restaurant – Lunch" };
-                        processPayment(names[which], amounts[which]);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        dialog.show();
     }
 
     private void showCustomPayDialog() {

@@ -66,4 +66,7 @@ dependencies {
 
     // CircleImageView
     implementation("de.hdodenhof:circleimageview:3.1.0")
+
+    // WorkManager for background tasks
+    implementation("androidx.work:work-runtime:2.9.0")
 }

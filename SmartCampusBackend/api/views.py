@@ -8,12 +8,13 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Q
 
-from .models import CampusLocation, Event, Report, Favorite, CampusStat, Post, PostLike, UserFollow
+from .models import CampusLocation, Event, Report, Favorite, CampusStat, Post, PostLike, UserFollow, Message, Conversation, PostComment, EventRegistration
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     CampusLocationSerializer, EventSerializer, ReportSerializer,
     FavoriteSerializer, CampusStatSerializer,
     PostSerializer, UserSearchSerializer,
+    PostCommentSerializer, MessageSerializer, ConversationSerializer,
 )
 
 
@@ -65,7 +66,7 @@ def logout_view(request):
 @permission_classes([IsAuthenticated])
 def profile_view(request):
     if request.method == 'GET':
-        return Response(UserSerializer(request.user).data)
+        return Response(UserSerializer(request.user, context={'request': request}).data)
 
     elif request.method == 'PUT':
         user = request.user
@@ -82,7 +83,16 @@ def profile_view(request):
             profile.avatar_color = request.data['avatar_color']
         profile.save()
 
-        return Response(UserSerializer(user).data)
+        return Response(UserSerializer(user, context={'request': request}).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_following_view(request):
+    following_ids = request.user.following.values_list('following_id', flat=True)
+    following_users = User.objects.filter(id__in=following_ids)
+    serializer = UserSearchSerializer(following_users, many=True, context={'request': request})
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -100,7 +110,7 @@ def locations_view(request):
 @permission_classes([AllowAny])
 def events_view(request):
     events = Event.objects.all()
-    serializer = EventSerializer(events, many=True)
+    serializer = EventSerializer(events, many=True, context={'request': request})
     return Response(serializer.data)
 
 
@@ -162,8 +172,7 @@ def favorite_delete_view(request, pk):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def social_feed_view(request):
-    """Return the latest 30 posts from all users, newest first."""
-    posts = Post.objects.select_related('author', 'author__profile').all()[:30]
+    posts = Post.objects.select_related('author', 'author__profile').all().order_by('-created_at')[:30]
     serializer = PostSerializer(posts, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -172,8 +181,6 @@ def social_feed_view(request):
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def social_create_post_view(request):
-    """Create a new post. post_type is auto-set from the author's verified role."""
-    # In Multipart requests, content might be in request.POST or request.data
     content = request.data.get('content', '')
     if not content and 'content' in request.POST:
         content = request.POST.get('content', '')
@@ -185,7 +192,7 @@ def social_create_post_view(request):
     post = Post(author=request.user, content=content)
     if 'image' in request.FILES:
         post.image = request.FILES['image']
-    post.save()  # save() auto-sets post_type from author.profile.role
+    post.save()
 
     serializer = PostSerializer(post, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -194,7 +201,6 @@ def social_create_post_view(request):
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def social_like_post_view(request, pk):
-    """POST to like, DELETE to unlike."""
     try:
         post = Post.objects.get(pk=pk)
     except Post.DoesNotExist:
@@ -218,7 +224,6 @@ def social_like_post_view(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def social_create_text_post_view(request):
-    """Create a text-only post via JSON body (no image)."""
     content = request.data.get('content', '')
     if isinstance(content, list): content = content[0] if content else ''
     content = str(content).strip()
@@ -233,22 +238,16 @@ def social_create_text_post_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def social_search_users_view(request):
-    """Search users by name or university. ?q=<query>"""
     q = request.query_params.get('q', '').strip()
     if len(q) < 2:
         return Response([])
 
-    try:
-        users = User.objects.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(profile__university__icontains=q)
-        ).exclude(id=request.user.id).select_related('profile')[:20]
-    except Exception:
-        users = User.objects.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q)
-        ).exclude(id=request.user.id)[:20]
+    users = User.objects.filter(
+        Q(first_name__icontains=q) |
+        Q(last_name__icontains=q) |
+        Q(username__icontains=q) |
+        Q(profile__university__icontains=q)
+    ).exclude(id=request.user.id).select_related('profile')[:20]
 
     serializer = UserSearchSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
@@ -256,14 +255,30 @@ def social_search_users_view(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def social_suggestions_view(request):
+    followed_ids = UserFollow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+    suggestions = User.objects.exclude(
+        id=request.user.id
+    ).exclude(
+        id__in=followed_ids
+    ).select_related('profile').order_by('?')[:10]
+    
+    serializer = UserSearchSerializer(suggestions, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def social_public_profile_view(request, pk):
-    """Get any user's public profile and their last 10 posts."""
     try:
         user = User.objects.select_related('profile').get(pk=pk)
     except User.DoesNotExist:
         return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    is_following = UserFollow.objects.filter(follower=request.user, following=user).exists()
     user_data = UserSearchSerializer(user, context={'request': request}).data
+    user_data['is_following'] = is_following
+    
     posts = Post.objects.filter(author=user).order_by('-created_at')[:10]
     posts_data = PostSerializer(posts, many=True, context={'request': request}).data
 
@@ -271,3 +286,150 @@ def social_public_profile_view(request, pk):
         'user': user_data,
         'posts': posts_data,
     })
+
+
+@api_view(['POST', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def social_follow_view(request, pk):
+    try:
+        to_follow = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if to_follow == request.user:
+        return Response({'error': 'You cannot follow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'POST':
+        UserFollow.objects.get_or_create(follower=request.user, following=to_follow)
+        return Response({'followed': True}, status=status.HTTP_201_CREATED)
+
+    elif request.method == 'DELETE':
+        UserFollow.objects.filter(follower=request.user, following=to_follow).delete()
+        return Response({'followed': False}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def social_comments_view(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({'error': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        comments = post.comments.all()
+        serializer = PostCommentSerializer(comments, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        content = request.data.get('content', '').strip()
+        if not content:
+            return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+        comment = PostComment.objects.create(post=post, author=request.user, content=content)
+        serializer = PostCommentSerializer(comment, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def social_repost_view(request, pk):
+    try:
+        original_post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({'error': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    content = request.data.get('content', '').strip()
+    repost = Post.objects.create(author=request.user, content=content, repost_of=original_post)
+    serializer = PostSerializer(repost, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def chat_list_view(request):
+    conversations = request.user.conversations.all()
+    serializer = ConversationSerializer(conversations, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def chat_messages_view(request, pk):
+    try:
+        other_user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    conversation = Conversation.objects.filter(participants=request.user).filter(participants=other_user).first()
+    
+    if not conversation and request.method == 'POST':
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, other_user)
+
+    if request.method == 'GET':
+        if not conversation:
+            return Response([])
+        messages = conversation.messages.all().order_by('timestamp')
+        serializer = MessageSerializer(messages, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        content = request.data.get('content', '')
+        if content is None: content = ""
+        content = str(content).strip()
+        
+        image = request.FILES.get('image')
+        file_obj = request.FILES.get('file')
+
+        if not content and not image and not file_obj:
+            return Response({'error': 'Message cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        message = Message.objects.create(
+            conversation=conversation, 
+            sender=request.user, 
+            content=content,
+            image=image,
+            file=file_obj
+        )
+        serializer = MessageSerializer(message, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def event_register_view(request, pk):
+    try:
+        event = Event.objects.get(pk=pk)
+    except Event.DoesNotExist:
+        return Response({'error': 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    action = request.data.get('action')
+    reg, _ = EventRegistration.objects.get_or_create(user=request.user, event=event)
+
+    if action == 'interested':
+        reg.is_interested = not reg.is_interested
+    elif action == 'participate':
+        reg.is_attending = not reg.is_attending
+    elif action == 'cancel':
+        reg.is_interested = False
+        reg.is_attending = False
+    
+    reg.save()
+    return Response({
+        'is_interested': reg.is_interested,
+        'is_attending': reg.is_attending,
+        'participants_count': event.registrations.filter(is_attending=True).count()
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def update_profile_image(request):
+    user = request.user
+    profile = user.profile
+    if 'avatar' in request.FILES:
+        profile.avatar = request.FILES['avatar']
+        profile.save()
+        return Response(UserSerializer(user, context={'request': request}).data)
+    return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)

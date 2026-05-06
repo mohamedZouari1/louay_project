@@ -36,6 +36,12 @@
         tools:layout="@layout/fragment_profile" />
 
     <fragment
+        android:id="@+id/eventsFragment"
+        android:name="com.smartcampus.manouba.fragments.EventsFragment"
+        android:label="Events"
+        tools:layout="@layout/fragment_events" />
+
+    <fragment
         android:id="@+id/profileDetailFragment"
         android:name="com.smartcampus.manouba.fragments.ProfileDetailFragment"
         android:label="Profile"
@@ -49,5 +55,32 @@
             app:argType="string"
             android:defaultValue="" />
     </fragment>
+
+    <fragment
+        android:id="@+id/chatMessagesFragment"
+        android:name="com.smartcampus.manouba.fragments.ChatMessagesFragment"
+        android:label="Discussion"
+        tools:layout="@layout/fragment_chat_messages">
+        <argument
+            android:name="chatId"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="chatName"
+            app:argType="string"
+            android:defaultValue="Discussion" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/scanQrFragment"
+        android:name="com.smartcampus.manouba.fragments.ScanQrFragment"
+        android:label="Scan QR Code"
+        tools:layout="@layout/fragment_scan_qr" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.smartcampus.manouba.fragments.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings" />
 
 </navigation>

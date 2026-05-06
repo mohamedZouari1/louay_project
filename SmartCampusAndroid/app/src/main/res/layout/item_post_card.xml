@@ -17,16 +17,27 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Avatar circle with initials -->
-        <TextView
-            android:id="@+id/tv_avatar"
+        <!-- Avatar circle with initials or photo -->
+        <FrameLayout
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:background="@drawable/bg_avatar_circle" />
+            android:layout_height="48dp">
+            <TextView
+                android:id="@+id/tv_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_avatar_circle" />
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_author_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        </FrameLayout>
 
         <!-- Name + tagline -->
         <LinearLayout
@@ -98,6 +109,35 @@
         android:lineSpacingMultiplier="1.45"
         android:paddingHorizontal="12dp"
         android:paddingBottom="10dp"/>
+
+    <!-- ── Repost Container (optional) ─────────────── -->
+    <LinearLayout
+        android:id="@+id/ll_repost_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="12dp"
+        android:padding="10dp"
+        android:background="@drawable/bg_repost_border"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_repost_author"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_repost_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#333333"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
 
     <!-- ── Post image (optional) ─────────────────────── -->
     <ImageView
@@ -178,8 +218,9 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- COMMENT button (visual only) -->
+        <!-- COMMENT button -->
         <LinearLayout
+            android:id="@+id/btn_comment"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
@@ -202,8 +243,9 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- SHARE button (visual only) -->
+        <!-- SHARE button -->
         <LinearLayout
+            android:id="@+id/btn_repost"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
@@ -226,6 +268,77 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
+    </LinearLayout>
+
+    <!-- ── Comment Preview Section ── -->
+    <LinearLayout
+        android:id="@+id/ll_comment_preview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F0F0"
+            android:layout_marginBottom="10dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="top">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_comment_author_avatar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                android:background="#E0E0E0"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_comment_preview"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/tv_comment_author_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#000000"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tv_comment_content_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#333333"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="2"
+                    android:ellipsize="end"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_view_more_comments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View all comments"
+            android:textColor="#0A66C2"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="40dp"/>
     </LinearLayout>
 
 </LinearLayout>

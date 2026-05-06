@@ -17,17 +17,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {
-            BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-            NavHostFragment navHostFragment = (NavHostFragment)
-                    getSupportFragmentManager().findFragmentById(R.id.main_nav_host);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        NavHostFragment navHostFragment = (NavHostFragment)
+                getSupportFragmentManager().findFragmentById(R.id.main_nav_host);
 
-            if (navHostFragment != null && bottomNav != null) {
-                NavController navController = navHostFragment.getNavController();
-                NavigationUI.setupWithNavController(bottomNav, navController);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (navHostFragment != null && bottomNav != null) {
+            NavController navController = navHostFragment.getNavController();
+            NavigationUI.setupWithNavController(bottomNav, navController);
         }
     }
 

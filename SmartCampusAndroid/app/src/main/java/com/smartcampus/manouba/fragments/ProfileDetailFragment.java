@@ -59,10 +59,33 @@ public class ProfileDetailFragment extends Fragment {
         progressBar      = view.findViewById(R.id.progress_bar);
         llPosts          = view.findViewById(R.id.ll_posts);
 
+        View btnFollow = view.findViewById(R.id.btn_follow);
+        View btnMessage = view.findViewById(R.id.btn_message);
+
         if (getArguments() != null) {
             userId = getArguments().getInt("userId", -1);
             String userName = getArguments().getString("userName", "Profile");
             if (getActivity() != null) getActivity().setTitle(userName);
+            
+            // Hide action buttons if viewing own profile
+            int myId = SharedPrefManager.getInstance(requireContext()).getUserId();
+            if (userId == myId || userId == -1) {
+                if (btnFollow != null) btnFollow.setVisibility(View.GONE);
+                if (btnMessage != null) btnMessage.setVisibility(View.GONE);
+            } else {
+                if (btnMessage != null) {
+                    btnMessage.setOnClickListener(v -> {
+                        Bundle args = new Bundle();
+                        args.putString("chatId", String.valueOf(userId));
+                        args.putString("chatName", userName);
+                        androidx.navigation.Navigation.findNavController(v)
+                                .navigate(R.id.chatMessagesFragment, args);
+                    });
+                }
+                if (btnFollow != null) {
+                    btnFollow.setOnClickListener(v -> toggleFollow());
+                }
+            }
         }
 
         if (userId != -1) loadProfile();
@@ -85,6 +108,10 @@ public class ProfileDetailFragment extends Fragment {
                             JsonObject body = response.body();
                             JsonObject user = body.has("user") ? body.getAsJsonObject("user") : new JsonObject();
                             JsonArray  postsArr = body.has("posts") ? body.getAsJsonArray("posts") : new JsonArray();
+                            
+                            boolean isFollowing = user.has("is_following") && user.get("is_following").getAsBoolean();
+                            updateFollowButton(isFollowing);
+                            
                             populateProfile(user, postsArr);
                         } else {
                             showError("Could not load profile.");
@@ -219,6 +246,51 @@ public class ProfileDetailFragment extends Fragment {
             if (hours < 24) return hours + "h ago";
             return days + "d ago";
         } catch (Exception e) { return ""; }
+    }
+
+    private boolean isFollowing = false;
+
+    private void updateFollowButton(boolean following) {
+        this.isFollowing = following;
+        View btnFollow = getView() != null ? getView().findViewById(R.id.btn_follow) : null;
+        if (btnFollow instanceof com.google.android.material.button.MaterialButton) {
+            com.google.android.material.button.MaterialButton btn = (com.google.android.material.button.MaterialButton) btnFollow;
+            if (following) {
+                btn.setText("Following");
+                btn.setIcon(requireContext().getDrawable(R.drawable.ic_check));
+                btn.setStrokeColorResource(R.color.divider);
+            } else {
+                btn.setText("Follow");
+                btn.setIcon(requireContext().getDrawable(R.drawable.ic_plus));
+                btn.setStrokeColorResource(R.color.primary);
+            }
+        }
+    }
+
+    private void toggleFollow() {
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        Call<JsonObject> call;
+        if (isFollowing) {
+            call = RetrofitClient.getInstance(token).getApi().unfollowUser(userId);
+        } else {
+            call = RetrofitClient.getInstance(token).getApi().followUser(userId);
+        }
+
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && response.isSuccessful()) {
+                    updateFollowButton(!isFollowing);
+                    // Refresh stats
+                    loadProfile();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                showError("Failed to update follow status.");
+            }
+        });
     }
 
     private void showError(String msg) {

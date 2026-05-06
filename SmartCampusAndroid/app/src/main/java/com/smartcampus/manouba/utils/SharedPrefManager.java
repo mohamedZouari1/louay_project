@@ -40,6 +40,14 @@ public class SharedPrefManager {
                 .apply();
     }
 
+    public void saveUserName(String name) {
+        prefs.edit().putString(Constants.KEY_USER_NAME, name).apply();
+    }
+
+    public void saveUserUniversity(String university) {
+        prefs.edit().putString(Constants.KEY_USER_UNIVERSITY, university).apply();
+    }
+
     public String getUserName() {
         return prefs.getString(Constants.KEY_USER_NAME, "Student");
     }
@@ -50,6 +58,10 @@ public class SharedPrefManager {
 
     public String getUserUniversity() {
         return prefs.getString(Constants.KEY_USER_UNIVERSITY, "");
+    }
+
+    public int getUserId() {
+        return prefs.getInt(Constants.KEY_USER_ID, -1);
     }
 
     public boolean isFirstLaunch() {
@@ -68,5 +80,13 @@ public class SharedPrefManager {
                 .remove(Constants.KEY_USER_UNIVERSITY)
                 .remove(Constants.KEY_USER_ID)
                 .apply();
+    }
+
+    public int getLastEventId() {
+        return prefs.getInt(Constants.KEY_LAST_EVENT_ID, -1);
+    }
+
+    public void setLastEventId(int id) {
+        prefs.edit().putInt(Constants.KEY_LAST_EVENT_ID, id).apply();
     }
 }

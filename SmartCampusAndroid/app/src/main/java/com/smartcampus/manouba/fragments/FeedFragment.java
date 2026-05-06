@@ -37,6 +37,7 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
 
     private PostsAdapter adapter;
     private final List<JsonObject> posts = new ArrayList<>();
+    private final List<JsonObject> suggestions = new ArrayList<>();
 
     @Nullable
     @Override
@@ -55,7 +56,8 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
         swipeRefresh = view.findViewById(R.id.swipe_refresh);
 
         // We now pass 'true' to show the LinkedIn header manually inside the adapter
-        adapter = new PostsAdapter(requireContext(), posts, this, true);
+        // We now pass suggestions list to the adapter
+        adapter = new PostsAdapter(requireContext(), posts, suggestions, this, true);
 
         rvFeed.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvFeed.setAdapter(adapter);
@@ -64,6 +66,28 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
         swipeRefresh.setOnRefreshListener(this::loadFeed);
 
         loadFeed();
+        loadSuggestions();
+        loadMyProfile();
+    }
+
+    private void loadMyProfile() {
+        int myId = SharedPrefManager.getInstance(requireContext()).getUserId();
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        RetrofitClient.getInstance(token).getApi().getUserProfile(myId)
+            .enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        JsonObject user = response.body().has("user") ? response.body().getAsJsonObject("user") : new JsonObject();
+                        String avatarUrl = user.has("avatar") && !user.get("avatar").isJsonNull() ? user.get("avatar").getAsString() : null;
+                        if (avatarUrl != null) {
+                            adapter.setMyAvatarUrl(avatarUrl);
+                        }
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {}
+            });
     }
 
     private void loadFeed() {
@@ -134,7 +158,27 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnLikeClickLi
         }
     }
 
-    public void refreshFeed() { loadFeed(); }
+    private void loadSuggestions() {
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        RetrofitClient.getInstance(token).getApi().getSuggestions()
+                .enqueue(new Callback<List<JsonObject>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<JsonObject>> call, @NonNull Response<List<JsonObject>> response) {
+                        if (isAdded() && response.isSuccessful() && response.body() != null) {
+                            suggestions.clear();
+                            suggestions.addAll(response.body());
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                    @Override
+                    public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {}
+                });
+    }
+
+    public void refreshFeed() { 
+        loadFeed(); 
+        loadSuggestions();
+    }
 
     private void showError(String msg) {
         if (isAdded()) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();

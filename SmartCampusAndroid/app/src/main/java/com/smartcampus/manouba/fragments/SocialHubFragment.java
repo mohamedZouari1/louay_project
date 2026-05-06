@@ -16,7 +16,7 @@ import com.smartcampus.manouba.R;
 
 public class SocialHubFragment extends Fragment {
 
-    private static final String[] TAB_TITLES = {"For You", "Post", "Search"};
+    private static final String[] TAB_TITLES = {"For You", "Post", "Messages", "Search"};
 
     @Nullable
     @Override

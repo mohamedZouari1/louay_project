@@ -76,24 +76,70 @@ public class ComposePostFragment extends Fragment {
         btnRemoveImage        = view.findViewById(R.id.btn_remove_image);
         imagePreviewContainer = view.findViewById(R.id.image_preview_container);
 
-        // Set avatar initials in LinkedIn-style compose header
+        // Set author info in header
+        TextView tvTopAvatar = view.findViewById(R.id.tv_top_avatar);
+        ImageView ivTopAvatar = view.findViewById(R.id.iv_top_avatar);
         TextView tvComposeAvatar = view.findViewById(R.id.tv_compose_avatar);
-        if (tvComposeAvatar != null) {
-            String name = SharedPrefManager.getInstance(requireContext()).getUserName();
-            String initials = "";
-            String[] parts = name.trim().split(" ");
-            if (parts.length > 0 && !parts[0].isEmpty()) initials += parts[0].charAt(0);
-            if (parts.length > 1 && !parts[1].isEmpty()) initials += parts[1].charAt(0);
-            tvComposeAvatar.setText(initials.toUpperCase());
-        }
+        ImageView ivComposeAvatar = view.findViewById(R.id.iv_compose_avatar);
+        TextView tvComposeAuthorName = view.findViewById(R.id.tv_compose_author_name);
+
+        String name = SharedPrefManager.getInstance(requireContext()).getUserName();
+        tvComposeAuthorName.setText(name);
+
+        String initials = "";
+        String[] parts = name.trim().split(" ");
+        if (parts.length > 0 && !parts[0].isEmpty()) initials += parts[0].charAt(0);
+        if (parts.length > 1 && !parts[1].isEmpty()) initials += parts[1].charAt(0);
+        
+        tvTopAvatar.setText(initials.toUpperCase());
+        tvComposeAvatar.setText(initials.toUpperCase());
+
+        loadMyProfile(tvTopAvatar, ivTopAvatar, tvComposeAvatar, ivComposeAvatar);
 
         btnAttach.setOnClickListener(v -> openImagePicker());
+        
+        view.findViewById(R.id.btn_attach_file).setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Opening file picker...", Toast.LENGTH_SHORT).show();
+            // Implement file picker logic here
+        });
+
+        view.findViewById(R.id.btn_record_vocal).setOnClickListener(v -> {
+            Toast.makeText(requireContext(), "Recording vocal message...", Toast.LENGTH_SHORT).show();
+            // Implement audio recording logic here
+        });
+
         btnRemoveImage.setOnClickListener(v -> {
             selectedImageUri = null;
             imagePreviewContainer.setVisibility(View.GONE);
             Toast.makeText(requireContext(), getString(R.string.photo_removed), Toast.LENGTH_SHORT).show();
         });
         btnPublish.setOnClickListener(v -> publishPost());
+    }
+
+    private void loadMyProfile(TextView tv1, ImageView iv1, TextView tv2, ImageView iv2) {
+        int myId = SharedPrefManager.getInstance(requireContext()).getUserId();
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        RetrofitClient.getInstance(token).getApi().getUserProfile(myId)
+            .enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+                    if (isAdded() && response.isSuccessful() && response.body() != null) {
+                        JsonObject user = response.body().has("user") ? response.body().getAsJsonObject("user") : new JsonObject();
+                        String avatarUrl = user.has("avatar") && !user.get("avatar").isJsonNull() ? user.get("avatar").getAsString() : null;
+                        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                            tv1.setVisibility(View.GONE);
+                            iv1.setVisibility(View.VISIBLE);
+                            tv2.setVisibility(View.GONE);
+                            iv2.setVisibility(View.VISIBLE);
+                            
+                            Glide.with(ComposePostFragment.this).load(avatarUrl).centerCrop().into(iv1);
+                            Glide.with(ComposePostFragment.this).load(avatarUrl).centerCrop().into(iv2);
+                        }
+                    }
+                }
+                @Override
+                public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {}
+            });
     }
 
     private void openImagePicker() {
