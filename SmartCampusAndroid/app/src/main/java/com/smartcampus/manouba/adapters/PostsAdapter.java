@@ -59,7 +59,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private final Context context;
     private final List<JsonObject> posts;
-    private final List<JsonObject> suggestions;
+    private List<JsonObject> suggestions;
     private OnLikeClickListener likeListener;
     private OnCommentClickListener commentListener;
     private OnRepostClickListener repostListener;
@@ -70,6 +70,11 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void setMyAvatarUrl(String url) {
         this.myAvatarUrl = url;
         notifyItemChanged(0);
+    }
+
+    public void setSuggestions(List<JsonObject> suggestions) {
+        this.suggestions = suggestions;
+        notifyDataSetChanged();
     }
 
     public PostsAdapter(Context context, List<JsonObject> posts, List<JsonObject> suggestions,
@@ -230,60 +235,93 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             holder.llPostFileContainer.setVisibility(View.GONE);
         }
 
-        if (!isRepost && !imageUrl.isEmpty()) {
-            if (holder.flPostMediaContainer != null) {
-                holder.flPostMediaContainer.setVisibility(View.VISIBLE);
-                holder.ivPostImage.setVisibility(View.VISIBLE);
-                if (holder.ivPlayButton != null) {
-                    holder.ivPlayButton.setVisibility(View.GONE);
+        if (!isRepost) {
+            String targetMediaUrl = "";
+            boolean isVideo = false;
+            boolean isImage = false;
+            boolean isDocument = false;
+
+            if (!fileUrl.isEmpty()) {
+                targetMediaUrl = fileUrl;
+                if (isVideoFile(fileUrl)) {
+                    isVideo = true;
+                } else if (isImageFile(fileUrl)) {
+                    isImage = true;
+                } else {
+                    isDocument = true;
                 }
-                Glide.with(context)
-                        .load(imageUrl)
-                        .placeholder(android.R.color.darker_gray)
-                        .error(android.R.drawable.ic_menu_gallery)
-                        .centerCrop()
-                        .into(holder.ivPostImage);
-                holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(imageUrl, false));
+            } else if (!imageUrl.isEmpty()) {
+                targetMediaUrl = imageUrl;
+                if (isVideoFile(imageUrl)) {
+                    isVideo = true;
+                } else if (isImageFile(imageUrl)) {
+                    isImage = true;
+                } else {
+                    if (imageUrl.toLowerCase().endsWith(".pdf") || imageUrl.toLowerCase().endsWith(".doc") || 
+                        imageUrl.toLowerCase().endsWith(".docx") || imageUrl.toLowerCase().endsWith(".xls") || 
+                        imageUrl.toLowerCase().endsWith(".xlsx")) {
+                        isDocument = true;
+                    } else {
+                        isImage = true;
+                    }
+                }
             }
-        } else if (!isRepost && !fileUrl.isEmpty()) {
-            if (isVideoFile(fileUrl)) {
-                if (holder.flPostMediaContainer != null) {
-                    holder.flPostMediaContainer.setVisibility(View.VISIBLE);
-                    holder.ivPostImage.setVisibility(View.VISIBLE);
-                    if (holder.ivPlayButton != null) {
-                        holder.ivPlayButton.setVisibility(View.VISIBLE);
-                        holder.ivPlayButton.setOnClickListener(v -> showFullScreenMedia(fileUrl, true));
-                    }
-                    Glide.with(context)
-                            .asBitmap()
-                            .load(fileUrl)
-                            .placeholder(android.R.color.darker_gray)
-                            .error(android.R.drawable.ic_menu_gallery)
-                            .override(300, 300)
-                            .centerCrop()
-                            .into(holder.ivPostImage);
-                    holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(fileUrl, true));
-                }
-            } else {
-                if (holder.llPostFileContainer != null) {
-                    holder.llPostFileContainer.setVisibility(View.VISIBLE);
-                    String fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
-                    // Decode URL percent-encoding to make the file name readable
-                    try {
-                        fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
-                    } catch (Exception ignored) {}
-                    if (holder.tvPostFileName != null) {
-                        holder.tvPostFileName.setText(fileName);
-                    }
-                    holder.llPostFileContainer.setOnClickListener(v -> {
-                        try {
-                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
-                            intent.setData(android.net.Uri.parse(fileUrl));
-                            context.startActivity(intent);
-                        } catch (Exception e) {
-                            Toast.makeText(context, "Cannot open attachment", Toast.LENGTH_SHORT).show();
+
+            if (!targetMediaUrl.isEmpty()) {
+                final String finalUrl = targetMediaUrl;
+                if (isImage) {
+                    if (holder.flPostMediaContainer != null) {
+                        holder.flPostMediaContainer.setVisibility(View.VISIBLE);
+                        holder.ivPostImage.setVisibility(View.VISIBLE);
+                        if (holder.ivPlayButton != null) {
+                            holder.ivPlayButton.setVisibility(View.GONE);
                         }
-                    });
+                        Glide.with(context)
+                                .load(targetMediaUrl)
+                                .placeholder(android.R.color.darker_gray)
+                                .error(android.R.drawable.ic_menu_gallery)
+                                .centerCrop()
+                                .into(holder.ivPostImage);
+                        holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(finalUrl, false));
+                    }
+                } else if (isVideo) {
+                    if (holder.flPostMediaContainer != null) {
+                        holder.flPostMediaContainer.setVisibility(View.VISIBLE);
+                        holder.ivPostImage.setVisibility(View.VISIBLE);
+                        if (holder.ivPlayButton != null) {
+                            holder.ivPlayButton.setVisibility(View.VISIBLE);
+                            holder.ivPlayButton.setOnClickListener(v -> showFullScreenMedia(finalUrl, true));
+                        }
+                        Glide.with(context)
+                                .asBitmap()
+                                .load(targetMediaUrl)
+                                .placeholder(android.R.color.darker_gray)
+                                .error(android.R.drawable.ic_menu_gallery)
+                                .override(300, 300)
+                                .centerCrop()
+                                .into(holder.ivPostImage);
+                        holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(finalUrl, true));
+                    }
+                } else if (isDocument) {
+                    if (holder.llPostFileContainer != null) {
+                        holder.llPostFileContainer.setVisibility(View.VISIBLE);
+                        String fileName = targetMediaUrl.substring(targetMediaUrl.lastIndexOf('/') + 1);
+                        try {
+                            fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
+                        } catch (Exception ignored) {}
+                        if (holder.tvPostFileName != null) {
+                            holder.tvPostFileName.setText(fileName);
+                        }
+                        holder.llPostFileContainer.setOnClickListener(v -> {
+                            try {
+                                android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                                intent.setData(android.net.Uri.parse(finalUrl));
+                                context.startActivity(intent);
+                            } catch (Exception e) {
+                                Toast.makeText(context, "Cannot open attachment", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -350,46 +388,77 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             String origImageUrl = getString(original, "image_url");
             String origFileUrl  = getString(original, "file_url");
             if (holder.flRepostMediaContainer != null) {
-                if (!origImageUrl.isEmpty()) {
-                    holder.flRepostMediaContainer.setVisibility(View.VISIBLE);
-                    if (holder.ivRepostMedia != null) {
-                        holder.ivRepostMedia.setVisibility(View.VISIBLE);
-                        Glide.with(context)
-                                .load(origImageUrl)
-                                .placeholder(android.R.color.darker_gray)
-                                .error(android.R.drawable.ic_menu_gallery)
-                                .centerCrop()
-                                .into(holder.ivRepostMedia);
-                        holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(origImageUrl, false));
-                    }
-                    if (holder.ivRepostPlayButton != null) {
-                        holder.ivRepostPlayButton.setVisibility(View.GONE);
-                    }
-                } else if (!origFileUrl.isEmpty()) {
-                    holder.flRepostMediaContainer.setVisibility(View.VISIBLE);
+                String targetOrigUrl = "";
+                boolean origIsVideo = false;
+                boolean origIsImage = false;
+                boolean origIsDocument = false;
+
+                if (!origFileUrl.isEmpty()) {
+                    targetOrigUrl = origFileUrl;
                     if (isVideoFile(origFileUrl)) {
+                        origIsVideo = true;
+                    } else if (isImageFile(origFileUrl)) {
+                        origIsImage = true;
+                    } else {
+                        origIsDocument = true;
+                    }
+                } else if (!origImageUrl.isEmpty()) {
+                    targetOrigUrl = origImageUrl;
+                    if (isVideoFile(origImageUrl)) {
+                        origIsVideo = true;
+                    } else if (isImageFile(origImageUrl)) {
+                        origIsImage = true;
+                    } else {
+                        if (origImageUrl.toLowerCase().endsWith(".pdf") || origImageUrl.toLowerCase().endsWith(".doc") || 
+                            origImageUrl.toLowerCase().endsWith(".docx") || origImageUrl.toLowerCase().endsWith(".xls") || 
+                            origImageUrl.toLowerCase().endsWith(".xlsx")) {
+                            origIsDocument = true;
+                        } else {
+                            origIsImage = true;
+                        }
+                    }
+                }
+
+                if (!targetOrigUrl.isEmpty()) {
+                    holder.flRepostMediaContainer.setVisibility(View.VISIBLE);
+                    final String finalOrigUrl = targetOrigUrl;
+                    if (origIsImage) {
+                        if (holder.ivRepostMedia != null) {
+                            holder.ivRepostMedia.setVisibility(View.VISIBLE);
+                            Glide.with(context)
+                                    .load(targetOrigUrl)
+                                    .placeholder(android.R.color.darker_gray)
+                                    .error(android.R.drawable.ic_menu_gallery)
+                                    .centerCrop()
+                                    .into(holder.ivRepostMedia);
+                            holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(finalOrigUrl, false));
+                        }
+                        if (holder.ivRepostPlayButton != null) {
+                            holder.ivRepostPlayButton.setVisibility(View.GONE);
+                        }
+                    } else if (origIsVideo) {
                         if (holder.ivRepostMedia != null) {
                             holder.ivRepostMedia.setVisibility(View.VISIBLE);
                             Glide.with(context)
                                     .asBitmap()
-                                    .load(origFileUrl)
+                                    .load(targetOrigUrl)
                                     .placeholder(android.R.color.darker_gray)
                                     .error(android.R.drawable.ic_menu_gallery)
                                     .override(300, 300)
                                     .centerCrop()
                                     .into(holder.ivRepostMedia);
-                            holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(origFileUrl, true));
+                            holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(finalOrigUrl, true));
                         }
                         if (holder.ivRepostPlayButton != null) {
                             holder.ivRepostPlayButton.setVisibility(View.VISIBLE);
-                            holder.ivRepostPlayButton.setOnClickListener(v -> showFullScreenMedia(origFileUrl, true));
+                            holder.ivRepostPlayButton.setOnClickListener(v -> showFullScreenMedia(finalOrigUrl, true));
                         }
-                    } else {
+                    } else if (origIsDocument) {
                         if (holder.ivRepostMedia != null) {
                             holder.ivRepostMedia.setVisibility(View.VISIBLE);
                             holder.ivRepostMedia.setImageResource(android.R.drawable.ic_menu_save);
                             holder.ivRepostMedia.setOnClickListener(v -> {
-                                String fileName = origFileUrl.substring(origFileUrl.lastIndexOf('/') + 1);
+                                String fileName = finalOrigUrl.substring(finalOrigUrl.lastIndexOf('/') + 1);
                                 Toast.makeText(context, "Attachment: " + fileName, Toast.LENGTH_SHORT).show();
                             });
                         }
@@ -636,6 +705,14 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         String lower = url.toLowerCase(Locale.getDefault());
         return lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") ||
                lower.endsWith(".3gp") || lower.endsWith(".avi") || lower.contains("/video/");
+    }
+
+    private boolean isImageFile(String url) {
+        if (url == null || url.isEmpty()) return false;
+        String lower = url.toLowerCase(Locale.getDefault());
+        return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") ||
+               lower.endsWith(".gif") || lower.endsWith(".webp") || lower.endsWith(".bmp") ||
+               lower.contains("/posts/post_image_") || lower.contains("/media/posts/");
     }
 
     private void showFullScreenMedia(String mediaUrl, boolean isVideo) {

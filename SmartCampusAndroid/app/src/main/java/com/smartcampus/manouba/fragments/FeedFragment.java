@@ -36,6 +36,7 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
     private SwipeRefreshLayout swipeRefresh;
     private PostsAdapter adapter;
     private List<JsonObject> posts = new ArrayList<>();
+    private List<JsonObject> suggestions = new ArrayList<>();
 
     // Real-time polling
     private final Handler pollHandler = new Handler(Looper.getMainLooper());
@@ -114,10 +115,12 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
     public void loadFeed() {
         if (swipeRefresh != null) swipeRefresh.setRefreshing(true);
         fetchFeed(true);
+        loadSuggestions();
     }
 
     private void loadFeedSilent() {
         fetchFeed(false);
+        loadSuggestions();
     }
 
     private void fetchFeed(boolean showSpinner) {
@@ -265,6 +268,32 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void loadSuggestions() {
+        android.content.Context ctx = getContext();
+        if (ctx == null) return;
+        String token = SharedPrefManager.getInstance(ctx).getToken();
+        RetrofitClient.getInstance(token).getApi().getSuggestions()
+                .enqueue(new Callback<List<JsonObject>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<JsonObject>> call,
+                                           @NonNull Response<List<JsonObject>> response) {
+                        if (!isAdded() || getContext() == null) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            suggestions.clear();
+                            suggestions.addAll(response.body());
+                            if (adapter != null) {
+                                adapter.setSuggestions(suggestions);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
+                        // Silent failure for suggestions so as not to interrupt core feed experience
+                    }
+                });
     }
 
     // ── OnComposeClickListener (from PostsAdapter header) ───────────────────
