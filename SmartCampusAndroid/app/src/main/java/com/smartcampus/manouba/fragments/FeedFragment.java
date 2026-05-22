@@ -309,9 +309,14 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
                                            @NonNull Response<JsonObject> response) {
                         if (!isAdded() || getContext() == null) return;
                         if (response.isSuccessful() && response.body() != null) {
-                            JsonObject profile = response.body();
-                            if (profile.has("avatar") && !profile.get("avatar").isJsonNull()) {
-                                String avatarUrl = profile.get("avatar").getAsString();
+                            JsonObject body = response.body();
+                            JsonObject profile = body.has("profile") && !body.get("profile").isJsonNull()
+                                    ? body.getAsJsonObject("profile") : null;
+                            String avatarUrl = null;
+                            if (profile != null && profile.has("avatar") && !profile.get("avatar").isJsonNull()) {
+                                avatarUrl = profile.get("avatar").getAsString();
+                            }
+                            if (avatarUrl != null && !avatarUrl.isEmpty()) {
                                 if (adapter != null) {
                                     adapter.setMyAvatarUrl(avatarUrl);
                                 }
