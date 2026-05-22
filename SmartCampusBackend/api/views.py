@@ -7,11 +7,11 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Q, Count, Exists, OuterRef, Prefetch
+from django.http import HttpResponse, Http404
 
 from .models import (CampusLocation, Event, Report, Favorite, CampusStat,
                      Post, PostLike, UserFollow, Message, Conversation, PostComment,
                      EventRegistration, Notification)
-from .media_uploads import upload_attachment
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     CampusLocationSerializer, EventSerializer, ReportSerializer,
@@ -20,6 +20,35 @@ from .serializers import (
     PostCommentSerializer, MessageSerializer, ConversationSerializer,
     NotificationSerializer,
 )
+
+MAX_ATTACHMENT_BYTES = 16 * 1024 * 1024
+
+
+def read_attachment_for_database(uploaded_file):
+    try:
+        uploaded_file.seek(0)
+    except Exception:
+        pass
+    data = uploaded_file.read()
+    if len(data) > MAX_ATTACHMENT_BYTES:
+        raise ValueError("Attachment is too large.")
+    return {
+        'attachment_data': data,
+        'external_file_name': getattr(uploaded_file, 'name', '') or 'attachment',
+        'external_file_type': getattr(uploaded_file, 'content_type', '') or 'application/octet-stream',
+    }
+
+
+def attachment_response(obj):
+    if not obj or obj.attachment_data is None:
+        raise Http404("Attachment not found")
+    file_name = obj.external_file_name or 'attachment'
+    content_type = obj.external_file_type or 'application/octet-stream'
+    response = HttpResponse(bytes(obj.attachment_data), content_type=content_type)
+    response['Content-Disposition'] = f'inline; filename="{file_name}"'
+    response['Cache-Control'] = 'public, max-age=3600'
+    response['Accept-Ranges'] = 'bytes'
+    return response
 
 
 # ─────────────────────────────────────────
@@ -233,20 +262,14 @@ def social_create_post_view(request):
     if 'file' in request.FILES:
         file_obj = request.FILES['file']
         try:
-            uploaded = upload_attachment(file_obj, "smartcampus/post_files")
+            post_fields = read_attachment_for_database(file_obj)
         except Exception as exc:
             return Response(
-                {'error': f'Could not upload attachment: {exc}'},
-                status=status.HTTP_502_BAD_GATEWAY
+                {'error': f'Could not save attachment: {exc}'},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        if uploaded:
-            post.external_file_url = uploaded['url']
-            post.external_file_name = uploaded['name']
-            post.external_file_type = uploaded['type']
-            post.external_file_public_id = uploaded['public_id']
-            post.external_file_resource_type = uploaded['resource_type']
-        else:
-            post.file = file_obj
+        for field, value in post_fields.items():
+            setattr(post, field, value)
     post.save()
 
     serializer = PostSerializer(post, context={'request': request})
@@ -541,22 +564,12 @@ def chat_messages_view(request, pk):
         }
         if file_obj:
             try:
-                uploaded = upload_attachment(file_obj, "smartcampus/chat_files")
+                message_kwargs.update(read_attachment_for_database(file_obj))
             except Exception as exc:
                 return Response(
-                    {'error': f'Could not upload attachment: {exc}'},
-                    status=status.HTTP_502_BAD_GATEWAY
+                    {'error': f'Could not save attachment: {exc}'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            if uploaded:
-                message_kwargs.update({
-                    'external_file_url': uploaded['url'],
-                    'external_file_name': uploaded['name'],
-                    'external_file_type': uploaded['type'],
-                    'external_file_public_id': uploaded['public_id'],
-                    'external_file_resource_type': uploaded['resource_type'],
-                })
-            else:
-                message_kwargs['file'] = file_obj
 
         message = Message.objects.create(**message_kwargs)
         # Update conversation timestamp
@@ -584,6 +597,28 @@ def chat_unread_count_view(request):
         is_read=False
     ).exclude(sender=request.user).count()
     return Response({'unread': unread})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def post_attachment_view(request, token, filename='attachment'):
+    try:
+        post = Post.objects.get(attachment_token=token, attachment_data__isnull=False)
+    except Post.DoesNotExist:
+        raise Http404("Attachment not found")
+    return attachment_response(post)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def message_attachment_view(request, token, filename='attachment'):
+    try:
+        message = Message.objects.get(attachment_token=token, attachment_data__isnull=False)
+    except Message.DoesNotExist:
+        raise Http404("Attachment not found")
+    return attachment_response(message)
 
 
 # ─────────────────────────────────────────

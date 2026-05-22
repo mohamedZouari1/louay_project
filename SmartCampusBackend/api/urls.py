@@ -40,6 +40,8 @@ urlpatterns = [
     path('chat/conversations/', views.chat_list_view, name='chat-list'),
     path('chat/messages/<int:pk>/', views.chat_messages_view, name='chat-messages'),
     path('chat/unread/', views.chat_unread_count_view, name='chat-unread'),
+    path('attachments/posts/<uuid:token>/<str:filename>', views.post_attachment_view, name='post-attachment'),
+    path('attachments/messages/<uuid:token>/<str:filename>', views.message_attachment_view, name='message-attachment'),
 
     # ── Notifications ───────────────────────
     path('notifications/', views.notifications_view, name='notifications'),

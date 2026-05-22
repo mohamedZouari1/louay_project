@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -176,6 +178,8 @@ class Post(models.Model):
     external_file_type = models.CharField(max_length=100, blank=True)
     external_file_public_id = models.CharField(max_length=500, blank=True)
     external_file_resource_type = models.CharField(max_length=30, blank=True)
+    attachment_data = models.BinaryField(blank=True, null=True)
+    attachment_token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
     # post_type is automatically set from author's role on save
     post_type = models.CharField(max_length=10, choices=POST_TYPE_CHOICES, default='student')
     repost_of = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
@@ -260,6 +264,8 @@ class Message(models.Model):
     external_file_type = models.CharField(max_length=100, blank=True)
     external_file_public_id = models.CharField(max_length=500, blank=True)
     external_file_resource_type = models.CharField(max_length=30, blank=True)
+    attachment_data = models.BinaryField(blank=True, null=True)
+    attachment_token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 

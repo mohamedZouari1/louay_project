@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 import mimetypes
 import os
+from urllib.parse import quote
 from .models import (
     UserProfile, CampusLocation, Event, Report, Favorite, CampusStat,
     Post, PostLike, UserFollow, PostComment, Conversation, Message, Repost, Notification
@@ -20,6 +21,15 @@ def get_file_type(file_field):
         return ''
     guessed_type, _ = mimetypes.guess_type(file_field.name or '')
     return guessed_type or 'application/octet-stream'
+
+
+def get_backend_attachment_url(request, kind, obj):
+    if not getattr(obj, 'attachment_data', None):
+        return None
+    file_name = obj.external_file_name or get_file_name(obj.file) or 'attachment'
+    safe_name = quote(file_name, safe='')
+    path = f"/api/attachments/{kind}/{obj.attachment_token}/{safe_name}"
+    return request.build_absolute_uri(path) if request else path
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -321,6 +331,10 @@ class PostSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        request = self.context.get('request')
+        backend_url = get_backend_attachment_url(request, 'posts', obj)
+        if backend_url:
+            return backend_url
         if obj.external_file_public_id:
             signed_url = build_signed_attachment_url(
                 obj.external_file_public_id,
@@ -330,7 +344,6 @@ class PostSerializer(serializers.ModelSerializer):
                 return signed_url
         if obj.external_file_url:
             return signed_url_from_cloudinary_url(obj.external_file_url)
-        request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         return None
@@ -373,6 +386,10 @@ class MessageSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        request = self.context.get('request')
+        backend_url = get_backend_attachment_url(request, 'messages', obj)
+        if backend_url:
+            return backend_url
         if obj.external_file_public_id:
             signed_url = build_signed_attachment_url(
                 obj.external_file_public_id,
@@ -382,7 +399,6 @@ class MessageSerializer(serializers.ModelSerializer):
                 return signed_url
         if obj.external_file_url:
             return signed_url_from_cloudinary_url(obj.external_file_url)
-        request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         return None
