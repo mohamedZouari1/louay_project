@@ -171,6 +171,9 @@ class Post(models.Model):
     content = models.TextField()
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
     file = models.FileField(upload_to='post_files/', blank=True, null=True)  # vocal / document
+    external_file_url = models.URLField(max_length=700, blank=True)
+    external_file_name = models.CharField(max_length=255, blank=True)
+    external_file_type = models.CharField(max_length=100, blank=True)
     # post_type is automatically set from author's role on save
     post_type = models.CharField(max_length=10, choices=POST_TYPE_CHOICES, default='student')
     repost_of = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
@@ -250,6 +253,9 @@ class Message(models.Model):
     content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
     file = models.FileField(upload_to='chat_files/', blank=True, null=True)
+    external_file_url = models.URLField(max_length=700, blank=True)
+    external_file_name = models.CharField(max_length=255, blank=True)
+    external_file_type = models.CharField(max_length=100, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 

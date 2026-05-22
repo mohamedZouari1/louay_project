@@ -11,6 +11,7 @@ from django.db.models import Q, Count, Exists, OuterRef, Prefetch
 from .models import (CampusLocation, Event, Report, Favorite, CampusStat,
                      Post, PostLike, UserFollow, Message, Conversation, PostComment,
                      EventRegistration, Notification)
+from .media_uploads import upload_attachment
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     CampusLocationSerializer, EventSerializer, ReportSerializer,
@@ -230,7 +231,20 @@ def social_create_post_view(request):
     if 'image' in request.FILES:
         post.image = request.FILES['image']
     if 'file' in request.FILES:
-        post.file = request.FILES['file']
+        file_obj = request.FILES['file']
+        try:
+            uploaded = upload_attachment(file_obj, "smartcampus/post_files")
+        except Exception as exc:
+            return Response(
+                {'error': f'Could not upload attachment: {exc}'},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+        if uploaded:
+            post.external_file_url = uploaded['url']
+            post.external_file_name = uploaded['name']
+            post.external_file_type = uploaded['type']
+        else:
+            post.file = file_obj
     post.save()
 
     serializer = PostSerializer(post, context={'request': request})
@@ -517,13 +531,30 @@ def chat_messages_view(request, pk):
         if not content and not image and not file_obj:
             return Response({'error': 'Message cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        message = Message.objects.create(
-            conversation=conversation,
-            sender=request.user,
-            content=content,
-            image=image,
-            file=file_obj
-        )
+        message_kwargs = {
+            'conversation': conversation,
+            'sender': request.user,
+            'content': content,
+            'image': image,
+        }
+        if file_obj:
+            try:
+                uploaded = upload_attachment(file_obj, "smartcampus/chat_files")
+            except Exception as exc:
+                return Response(
+                    {'error': f'Could not upload attachment: {exc}'},
+                    status=status.HTTP_502_BAD_GATEWAY
+                )
+            if uploaded:
+                message_kwargs.update({
+                    'external_file_url': uploaded['url'],
+                    'external_file_name': uploaded['name'],
+                    'external_file_type': uploaded['type'],
+                })
+            else:
+                message_kwargs['file'] = file_obj
+
+        message = Message.objects.create(**message_kwargs)
         # Update conversation timestamp
         conversation.save()
 

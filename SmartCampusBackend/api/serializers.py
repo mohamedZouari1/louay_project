@@ -320,15 +320,21 @@ class PostSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        if obj.external_file_url:
+            return obj.external_file_url
         request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         return None
 
     def get_file_name(self, obj):
+        if obj.external_file_name:
+            return obj.external_file_name
         return get_file_name(obj.file)
 
     def get_file_type(self, obj):
+        if obj.external_file_type:
+            return obj.external_file_type
         return get_file_type(obj.file)
 
     def get_repost_of_detail(self, obj):
@@ -359,15 +365,21 @@ class MessageSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        if obj.external_file_url:
+            return obj.external_file_url
         request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         return None
 
     def get_file_name(self, obj):
+        if obj.external_file_name:
+            return obj.external_file_name
         return get_file_name(obj.file)
 
     def get_file_type(self, obj):
+        if obj.external_file_type:
+            return obj.external_file_type
         return get_file_type(obj.file)
 
     def get_is_me(self, obj):
