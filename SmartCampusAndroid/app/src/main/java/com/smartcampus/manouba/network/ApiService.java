@@ -113,6 +113,7 @@ public interface ApiService {
     Call<JsonObject> sendImageMessage(
             @Path("id") int otherUserId,
             @Part("content") RequestBody content,
+            @Part("reply_to") RequestBody replyTo,
             @Part MultipartBody.Part image
     );
 
@@ -122,6 +123,7 @@ public interface ApiService {
     Call<JsonObject> sendFileMessage(
             @Path("id") int otherUserId,
             @Part("content") RequestBody content,
+            @Part("reply_to") RequestBody replyTo,
             @Part MultipartBody.Part file
     );
 

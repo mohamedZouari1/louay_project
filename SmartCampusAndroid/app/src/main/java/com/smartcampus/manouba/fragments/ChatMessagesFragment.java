@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -57,7 +58,9 @@ public class ChatMessagesFragment extends Fragment {
 
     private RecyclerView rvMessages;
     private EditText etMessage;
-    private ImageButton btnSend, btnAttachImage, btnAttachFile, btnRecord;
+    private ImageButton btnSend, btnAttachImage, btnAttachFile, btnRecord, btnCancelReply;
+    private View replyPreviewContainer;
+    private TextView tvReplyingTo, tvReplyPreview;
 
     private MessageAdapter adapter;
     private final List<ChatMessage> messages = new ArrayList<>();
@@ -65,6 +68,7 @@ public class ChatMessagesFragment extends Fragment {
     private int otherUserId = -1;
     private String chatName = "";
     private int myId = -1;
+    private ChatMessage replyTarget = null;
 
     // Real-time polling
     private final Handler pollHandler = new Handler(Looper.getMainLooper());
@@ -123,6 +127,10 @@ public class ChatMessagesFragment extends Fragment {
         btnAttachImage  = null;
         btnAttachFile   = null;
         btnRecord       = null;
+        replyPreviewContainer = view.findViewById(R.id.reply_preview_container);
+        tvReplyingTo = view.findViewById(R.id.tv_replying_to);
+        tvReplyPreview = view.findViewById(R.id.tv_reply_preview);
+        btnCancelReply = view.findViewById(R.id.btn_cancel_reply);
 
         View btnBack = view.findViewById(R.id.btn_chat_back);
         if (btnBack != null) {
@@ -144,12 +152,16 @@ public class ChatMessagesFragment extends Fragment {
         }
 
         adapter = new MessageAdapter(messages);
+        adapter.setReplyClickListener(this::setReplyTarget);
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
         layoutManager.setStackFromEnd(true);
         rvMessages.setLayoutManager(layoutManager);
         rvMessages.setAdapter(adapter);
 
         btnSend.setOnClickListener(v -> sendTextMessage());
+        if (btnCancelReply != null) {
+            btnCancelReply.setOnClickListener(v -> clearReplyTarget());
+        }
 
         loadMessages();
     }
@@ -258,8 +270,21 @@ public class ChatMessagesFragment extends Fragment {
                 ? msg.get("file_type").getAsString() : null;
         String timestamp = msg.has("timestamp") && !msg.get("timestamp").isJsonNull()
                 ? msg.get("timestamp").getAsString() : "";
+        String replyId = null;
+        String replySender = null;
+        String replyContent = null;
+        if (msg.has("reply_to_detail") && !msg.get("reply_to_detail").isJsonNull()) {
+            JsonObject reply = msg.getAsJsonObject("reply_to_detail");
+            replyId = reply.has("id") && !reply.get("id").isJsonNull()
+                    ? reply.get("id").getAsString() : null;
+            replySender = reply.has("sender_name") && !reply.get("sender_name").isJsonNull()
+                    ? reply.get("sender_name").getAsString() : null;
+            replyContent = reply.has("content") && !reply.get("content").isJsonNull()
+                    ? reply.get("content").getAsString() : null;
+        }
 
-        return new ChatMessage(id, content, formatTime(timestamp), sentByMe, imageUrl, fileUrl, fileName, fileType);
+        return new ChatMessage(id, content, formatTime(timestamp), sentByMe,
+                imageUrl, fileUrl, fileName, fileType, replyId, replySender, replyContent);
     }
 
     // ── Send messages ─────────────────────────────────────────────────────────
@@ -279,6 +304,9 @@ public class ChatMessagesFragment extends Fragment {
         String token = SharedPrefManager.getInstance(requireContext()).getToken();
         JsonObject body = new JsonObject();
         body.addProperty("content", text);
+        if (replyTarget != null && replyTarget.getId() != null) {
+            body.addProperty("reply_to", replyTarget.getId());
+        }
         RetrofitClient.getInstance(token).getApi().sendMessage(otherUserId, body)
                 .enqueue(new Callback<JsonObject>() {
                     @Override
@@ -289,6 +317,7 @@ public class ChatMessagesFragment extends Fragment {
                             int lastIdx = messages.size() - 1;
                             messages.set(lastIdx, parseMessage(response.body()));
                             adapter.notifyItemChanged(lastIdx);
+                            clearReplyTarget();
                         }
                     }
                     @Override
@@ -349,11 +378,12 @@ public class ChatMessagesFragment extends Fragment {
 
             String token = SharedPrefManager.getInstance(requireContext()).getToken();
             RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "");
+            RequestBody replyToBody = createReplyToBody();
             RequestBody fileBody = RequestBody.create(MediaType.parse(mimeType), file);
             MultipartBody.Part part = MultipartBody.Part.createFormData("image", file.getName(), fileBody);
 
             RetrofitClient.getInstance(token).getApi()
-                    .sendImageMessage(otherUserId, contentBody, part)
+                    .sendImageMessage(otherUserId, contentBody, replyToBody, part)
                     .enqueue(messageSentCallback);
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Could not attach image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -368,11 +398,12 @@ public class ChatMessagesFragment extends Fragment {
 
             String token = SharedPrefManager.getInstance(requireContext()).getToken();
             RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "");
+            RequestBody replyToBody = createReplyToBody();
             RequestBody fileBody = RequestBody.create(MediaType.parse(mimeType), file);
             MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), fileBody);
 
             RetrofitClient.getInstance(token).getApi()
-                    .sendFileMessage(otherUserId, contentBody, part)
+                    .sendFileMessage(otherUserId, contentBody, replyToBody, part)
                     .enqueue(messageSentCallback);
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Could not attach file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -383,11 +414,12 @@ public class ChatMessagesFragment extends Fragment {
         try {
             String token = SharedPrefManager.getInstance(requireContext()).getToken();
             RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "🎤 Voice message");
+            RequestBody replyToBody = createReplyToBody();
             RequestBody fileBody = RequestBody.create(MediaType.parse("audio/mp4"), audioFile);
             MultipartBody.Part part = MultipartBody.Part.createFormData("file", audioFile.getName(), fileBody);
 
             RetrofitClient.getInstance(token).getApi()
-                    .sendFileMessage(otherUserId, contentBody, part)
+                    .sendFileMessage(otherUserId, contentBody, replyToBody, part)
                     .enqueue(messageSentCallback);
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Could not send voice message", Toast.LENGTH_SHORT).show();
@@ -402,6 +434,7 @@ public class ChatMessagesFragment extends Fragment {
                 messages.add(parseMessage(response.body()));
                 adapter.notifyItemInserted(messages.size() - 1);
                 rvMessages.scrollToPosition(messages.size() - 1);
+                clearReplyTarget();
             } else {
                 Toast.makeText(requireContext(), "Failed to send: " + response.code(), Toast.LENGTH_SHORT).show();
             }
@@ -414,6 +447,43 @@ public class ChatMessagesFragment extends Fragment {
     };
 
     // ── Vocal recording ──────────────────────────────────────────────────────
+
+    private RequestBody createReplyToBody() {
+        String value = replyTarget != null && replyTarget.getId() != null ? replyTarget.getId() : "";
+        return RequestBody.create(MediaType.parse("text/plain"), value);
+    }
+
+    private void setReplyTarget(ChatMessage message) {
+        if (message == null) return;
+        replyTarget = message;
+        if (replyPreviewContainer != null) {
+            replyPreviewContainer.setVisibility(View.VISIBLE);
+        }
+        if (tvReplyingTo != null) {
+            tvReplyingTo.setText("Replying to " + (message.isSentByMe() ? "yourself" : chatName));
+        }
+        if (tvReplyPreview != null) {
+            tvReplyPreview.setText(getMessagePreview(message));
+        }
+        if (etMessage != null) {
+            etMessage.requestFocus();
+        }
+    }
+
+    private void clearReplyTarget() {
+        replyTarget = null;
+        if (replyPreviewContainer != null) {
+            replyPreviewContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private String getMessagePreview(ChatMessage message) {
+        if (!TextUtils.isEmpty(message.getContent())) return message.getContent();
+        if (!TextUtils.isEmpty(message.getFileName())) return message.getFileName();
+        if (!TextUtils.isEmpty(message.getImageUrl())) return "Photo";
+        if (!TextUtils.isEmpty(message.getFileUrl())) return "Attachment";
+        return "Message";
+    }
 
     private void toggleRecording() {
         if (!isRecording) {

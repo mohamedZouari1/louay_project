@@ -78,50 +78,99 @@
             android:padding="12dp" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Input Bar -->
     <LinearLayout
         android:id="@+id/input_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:elevation="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageButton
-            android:id="@+id/btn_chat_add"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_input_add"
-            app:tint="@color/primary" />
-
-        <EditText
-            android:id="@+id/et_message"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/reply_preview_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_weight="1"
-            android:background="@drawable/shape_edittext_bg"
-            android:hint="Type a message..."
-            android:imeOptions="actionSend"
-            android:inputType="textCapSentences|textAutoCorrect"
-            android:maxLines="4"
-            android:minHeight="40dp"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:textSize="15sp" />
+            android:layout_marginBottom="6dp"
+            android:background="#F0F3FF"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:visibility="gone">
 
-        <ImageButton
-            android:id="@+id/btn_send_message"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_send"
-            app:tint="@color/primary" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_replying_to"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_reply_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_cancel_reply"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_chat_add"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_input_add"
+                app:tint="@color/primary" />
+
+            <EditText
+                android:id="@+id/et_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/shape_edittext_bg"
+                android:hint="Type a message..."
+                android:imeOptions="actionSend"
+                android:inputType="textCapSentences|textAutoCorrect"
+                android:maxLines="4"
+                android:minHeight="40dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:textSize="15sp" />
+
+            <ImageButton
+                android:id="@+id/btn_send_message"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_send"
+                app:tint="@color/primary" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

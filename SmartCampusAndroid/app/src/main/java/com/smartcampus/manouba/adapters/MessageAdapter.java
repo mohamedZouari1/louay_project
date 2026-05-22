@@ -30,6 +30,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int TYPE_RECEIVED = 2;
 
     private final List<ChatMessage> messages;
+    public interface OnReplyClickListener {
+        void onReply(ChatMessage message);
+    }
+    private OnReplyClickListener replyClickListener;
 
     // Shared Media Player state for inline voice playback
     private android.media.MediaPlayer mediaPlayer;
@@ -44,6 +48,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public MessageAdapter(List<ChatMessage> messages) {
         this.messages = messages;
+    }
+
+    public void setReplyClickListener(OnReplyClickListener listener) {
+        this.replyClickListener = listener;
     }
 
     @Override
@@ -77,6 +85,9 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ImageButton btnPlay = isSent ? ((SentViewHolder) holder).btnPlayAudio : ((ReceivedViewHolder) holder).btnPlayAudio;
         SeekBar sbProgress = isSent ? ((SentViewHolder) holder).sbAudioProgress : ((ReceivedViewHolder) holder).sbAudioProgress;
         TextView tvDuration = isSent ? ((SentViewHolder) holder).tvAudioDuration : ((ReceivedViewHolder) holder).tvAudioDuration;
+        LinearLayout llReply = isSent ? ((SentViewHolder) holder).llReplyPreview : ((ReceivedViewHolder) holder).llReplyPreview;
+        TextView tvReplySender = isSent ? ((SentViewHolder) holder).tvReplySender : ((ReceivedViewHolder) holder).tvReplySender;
+        TextView tvReplyContent = isSent ? ((SentViewHolder) holder).tvReplyContent : ((ReceivedViewHolder) holder).tvReplyContent;
 
         // Content Text
         tvMsg.setText(msg.getContent());
@@ -87,6 +98,21 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ivImg.setVisibility(View.GONE);
         if (llFile != null) llFile.setVisibility(View.GONE);
         if (llAudio != null) llAudio.setVisibility(View.GONE);
+        if (llReply != null) llReply.setVisibility(View.GONE);
+
+        if (!TextUtils.isEmpty(msg.getReplyToContent()) && llReply != null) {
+            llReply.setVisibility(View.VISIBLE);
+            tvReplySender.setText(TextUtils.isEmpty(msg.getReplyToSenderName()) ? "Message" : msg.getReplyToSenderName());
+            tvReplyContent.setText(msg.getReplyToContent());
+        }
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (replyClickListener != null) {
+                replyClickListener.onReply(msg);
+                return true;
+            }
+            return false;
+        });
 
         String imageUrl = msg.getImageUrl();
         String fileUrl = msg.getFileUrl();
@@ -333,6 +359,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ImageButton btnPlayAudio;
         SeekBar sbAudioProgress;
         TextView tvAudioDuration;
+        LinearLayout llReplyPreview;
+        TextView tvReplySender, tvReplyContent;
 
         SentViewHolder(View v) {
             super(v);
@@ -347,6 +375,9 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             btnPlayAudio = v.findViewById(R.id.btn_play_audio_sent);
             sbAudioProgress = v.findViewById(R.id.sb_audio_progress_sent);
             tvAudioDuration = v.findViewById(R.id.tv_audio_duration_sent);
+            llReplyPreview = v.findViewById(R.id.ll_reply_preview_sent);
+            tvReplySender = v.findViewById(R.id.tv_reply_sender_sent);
+            tvReplyContent = v.findViewById(R.id.tv_reply_content_sent);
         }
     }
 
@@ -361,6 +392,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ImageButton btnPlayAudio;
         SeekBar sbAudioProgress;
         TextView tvAudioDuration;
+        LinearLayout llReplyPreview;
+        TextView tvReplySender, tvReplyContent;
 
         ReceivedViewHolder(View v) {
             super(v);
@@ -375,6 +408,9 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             btnPlayAudio = v.findViewById(R.id.btn_play_audio_received);
             sbAudioProgress = v.findViewById(R.id.sb_audio_progress_received);
             tvAudioDuration = v.findViewById(R.id.tv_audio_duration_received);
+            llReplyPreview = v.findViewById(R.id.ll_reply_preview_received);
+            tvReplySender = v.findViewById(R.id.tv_reply_sender_received);
+            tvReplyContent = v.findViewById(R.id.tv_reply_content_received);
         }
     }
 }

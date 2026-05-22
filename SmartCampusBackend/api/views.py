@@ -538,7 +538,7 @@ def chat_messages_view(request, pk):
     if request.method == 'GET':
         if not conversation:
             return Response([])
-        messages = conversation.messages.select_related('sender').all().order_by('timestamp')
+        messages = conversation.messages.select_related('sender', 'reply_to', 'reply_to__sender').all().order_by('timestamp')
         # Mark received messages as read
         messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
         serializer = MessageSerializer(messages, many=True, context={'request': request})
@@ -552,15 +552,24 @@ def chat_messages_view(request, pk):
 
         image = request.FILES.get('image')
         file_obj = request.FILES.get('file')
+        reply_to_id = request.data.get('reply_to')
 
         if not content and not image and not file_obj:
             return Response({'error': 'Message cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reply_to = None
+        if reply_to_id:
+            try:
+                reply_to = conversation.messages.get(pk=reply_to_id)
+            except (Message.DoesNotExist, ValueError, TypeError):
+                return Response({'error': 'Reply target not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         message_kwargs = {
             'conversation': conversation,
             'sender': request.user,
             'content': content,
             'image': image,
+            'reply_to': reply_to,
         }
         if file_obj:
             try:

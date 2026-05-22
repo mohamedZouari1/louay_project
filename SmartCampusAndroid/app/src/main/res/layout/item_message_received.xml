@@ -17,6 +17,36 @@
         android:visibility="gone"
         android:layout_marginBottom="4dp" />
 
+    <LinearLayout
+        android:id="@+id/ll_reply_preview_received"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="64dp"
+        android:layout_marginBottom="4dp"
+        android:background="#14000000"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_reply_sender_received"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_reply_content_received"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <!-- File Attachment Block -->
     <LinearLayout
         android:id="@+id/ll_file_container_received"

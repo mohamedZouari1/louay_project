@@ -371,13 +371,14 @@ class MessageSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
     file_name = serializers.SerializerMethodField()
     file_type = serializers.SerializerMethodField()
+    reply_to_detail = serializers.SerializerMethodField()
     is_me = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         fields = ['id', 'sender', 'sender_id', 'sender_name', 'content',
                   'image_url', 'file_url', 'file_name', 'file_type',
-                  'timestamp', 'is_read', 'is_me']
+                  'reply_to', 'reply_to_detail', 'timestamp', 'is_read', 'is_me']
 
     def get_image_url(self, obj):
         request = self.context.get('request')
@@ -412,6 +413,28 @@ class MessageSerializer(serializers.ModelSerializer):
         if obj.external_file_type:
             return obj.external_file_type
         return get_file_type(obj.file)
+
+    def get_reply_to_detail(self, obj):
+        if not obj.reply_to:
+            return None
+        replied = obj.reply_to
+        sender_name = replied.sender.get_full_name() or replied.sender.username
+        preview = (replied.content or '').strip()
+        if not preview:
+            if replied.image:
+                preview = 'Photo'
+            elif replied.external_file_name:
+                preview = replied.external_file_name
+            elif replied.file:
+                preview = get_file_name(replied.file) or 'Attachment'
+            else:
+                preview = 'Attachment'
+        return {
+            'id': replied.id,
+            'sender_id': replied.sender_id,
+            'sender_name': sender_name,
+            'content': preview[:160],
+        }
 
     def get_is_me(self, obj):
         request = self.context.get('request')

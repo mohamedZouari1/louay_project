@@ -9,10 +9,14 @@ public class ChatMessage {
     private String fileUrl;
     private String fileName;
     private String fileType;
+    private String replyToId;
+    private String replyToSenderName;
+    private String replyToContent;
 
     /** Full constructor */
     public ChatMessage(String id, String content, String time, boolean isSentByMe,
-                       String imageUrl, String fileUrl, String fileName, String fileType) {
+                       String imageUrl, String fileUrl, String fileName, String fileType,
+                       String replyToId, String replyToSenderName, String replyToContent) {
         this.id = id;
         this.content = content;
         this.time = time;
@@ -21,6 +25,9 @@ public class ChatMessage {
         this.fileUrl = fileUrl;
         this.fileName = fileName;
         this.fileType = fileType;
+        this.replyToId = replyToId;
+        this.replyToSenderName = replyToSenderName;
+        this.replyToContent = replyToContent;
     }
 
     /** Convenience constructor used by ChatMessagesFragment */
@@ -33,6 +40,9 @@ public class ChatMessage {
         this.fileUrl = null;
         this.fileName = null;
         this.fileType = null;
+        this.replyToId = null;
+        this.replyToSenderName = null;
+        this.replyToContent = null;
     }
 
     public String getId()        { return id; }
@@ -43,6 +53,9 @@ public class ChatMessage {
     public String getFileUrl()   { return fileUrl; }
     public String getFileName()  { return fileName; }
     public String getFileType()  { return fileType; }
+    public String getReplyToId() { return replyToId; }
+    public String getReplyToSenderName() { return replyToSenderName; }
+    public String getReplyToContent() { return replyToContent; }
 
     public void setTime(String time) { this.time = time; }
 }
