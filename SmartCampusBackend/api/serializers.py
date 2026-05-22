@@ -6,6 +6,7 @@ from .models import (
     UserProfile, CampusLocation, Event, Report, Favorite, CampusStat,
     Post, PostLike, UserFollow, PostComment, Conversation, Message, Repost, Notification
 )
+from .media_uploads import build_signed_attachment_url, signed_url_from_cloudinary_url
 
 
 def get_file_name(file_field):
@@ -320,8 +321,15 @@ class PostSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        if obj.external_file_public_id:
+            signed_url = build_signed_attachment_url(
+                obj.external_file_public_id,
+                obj.external_file_resource_type or 'raw',
+            )
+            if signed_url:
+                return signed_url
         if obj.external_file_url:
-            return obj.external_file_url
+            return signed_url_from_cloudinary_url(obj.external_file_url)
         request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
@@ -365,8 +373,15 @@ class MessageSerializer(serializers.ModelSerializer):
         return None
 
     def get_file_url(self, obj):
+        if obj.external_file_public_id:
+            signed_url = build_signed_attachment_url(
+                obj.external_file_public_id,
+                obj.external_file_resource_type or 'raw',
+            )
+            if signed_url:
+                return signed_url
         if obj.external_file_url:
-            return obj.external_file_url
+            return signed_url_from_cloudinary_url(obj.external_file_url)
         request = self.context.get('request')
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)

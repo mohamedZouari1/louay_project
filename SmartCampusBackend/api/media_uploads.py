@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 from django.conf import settings
 
@@ -33,7 +34,10 @@ def upload_attachment(uploaded_file, folder):
         unique_filename=True,
     )
 
-    secure_url = result.get("secure_url")
+    secure_url = build_signed_attachment_url(
+        result.get("public_id"),
+        result.get("resource_type") or "raw",
+    ) or result.get("secure_url")
     if not secure_url:
         raise ValueError("Cloudinary did not return a public file URL.")
 
@@ -41,4 +45,44 @@ def upload_attachment(uploaded_file, folder):
         "url": secure_url,
         "name": os.path.basename(getattr(uploaded_file, "name", "") or "attachment"),
         "type": getattr(uploaded_file, "content_type", "") or "application/octet-stream",
+        "public_id": result.get("public_id", ""),
+        "resource_type": result.get("resource_type", ""),
     }
+
+
+def build_signed_attachment_url(public_id, resource_type):
+    if not public_id or not cloudinary_configured():
+        return ""
+
+    from cloudinary.utils import cloudinary_url
+
+    url, _ = cloudinary_url(
+        public_id,
+        resource_type=resource_type or "raw",
+        type="upload",
+        secure=True,
+        sign_url=True,
+    )
+    return url or ""
+
+
+def signed_url_from_cloudinary_url(url):
+    if not url or not cloudinary_configured():
+        return url
+
+    parsed = urlparse(url)
+    parts = [part for part in parsed.path.split("/") if part]
+    try:
+        upload_index = parts.index("upload")
+    except ValueError:
+        return url
+
+    if upload_index == 0:
+        return url
+
+    resource_type = parts[upload_index - 1]
+    public_parts = parts[upload_index + 1:]
+    if public_parts and public_parts[0].startswith("v") and public_parts[0][1:].isdigit():
+        public_parts = public_parts[1:]
+    public_id = "/".join(public_parts)
+    return build_signed_attachment_url(public_id, resource_type) or url

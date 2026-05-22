@@ -243,6 +243,8 @@ def social_create_post_view(request):
             post.external_file_url = uploaded['url']
             post.external_file_name = uploaded['name']
             post.external_file_type = uploaded['type']
+            post.external_file_public_id = uploaded['public_id']
+            post.external_file_resource_type = uploaded['resource_type']
         else:
             post.file = file_obj
     post.save()
@@ -550,6 +552,8 @@ def chat_messages_view(request, pk):
                     'external_file_url': uploaded['url'],
                     'external_file_name': uploaded['name'],
                     'external_file_type': uploaded['type'],
+                    'external_file_public_id': uploaded['public_id'],
+                    'external_file_resource_type': uploaded['resource_type'],
                 })
             else:
                 message_kwargs['file'] = file_obj
