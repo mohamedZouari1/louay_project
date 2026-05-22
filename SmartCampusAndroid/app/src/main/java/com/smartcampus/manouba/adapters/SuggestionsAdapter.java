@@ -42,7 +42,12 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         JsonObject user = suggestions.get(position);
         int userId = user.get("id").getAsInt();
-        String name = user.get("first_name").getAsString() + " " + user.get("last_name").getAsString();
+        
+        String firstName = user.has("first_name") && !user.get("first_name").isJsonNull() ? user.get("first_name").getAsString() : "";
+        String lastName = user.has("last_name") && !user.get("last_name").isJsonNull() ? user.get("last_name").getAsString() : "";
+        String rawName = (firstName + " " + lastName).trim();
+        final String name = rawName.isEmpty() ? (user.has("username") && !user.get("username").isJsonNull() ? user.get("username").getAsString() : "Campus Member") : rawName;
+        
         String uni = user.has("university") && !user.get("university").isJsonNull() ? user.get("university").getAsString() : "Student";
         String colorStr = user.has("avatar_color") && !user.get("avatar_color").isJsonNull() ? user.get("avatar_color").getAsString() : "#1A237E";
 
@@ -57,22 +62,32 @@ public class SuggestionsAdapter extends RecyclerView.Adapter<SuggestionsAdapter.
         holder.tvAvatar.setText(initials.toUpperCase());
         holder.tvAvatar.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(colorStr)));
 
-        holder.btnFollow.setOnClickListener(v -> {
-            String token = SharedPrefManager.getInstance(context).getToken();
-            RetrofitClient.getInstance(token).getApi().followUser(userId).enqueue(new retrofit2.Callback<JsonObject>() {
-                @Override
-                public void onResponse(retrofit2.Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
-                    if (response.isSuccessful()) {
-                        holder.btnFollow.setText("Following");
-                        holder.btnFollow.setEnabled(false);
-                        holder.btnFollow.setAlpha(0.6f);
-                        Toast.makeText(context, "Following " + name, Toast.LENGTH_SHORT).show();
+        boolean isFollowing = user.has("is_following") && !user.get("is_following").isJsonNull() && user.get("is_following").getAsBoolean();
+        if (isFollowing) {
+            holder.btnFollow.setText("Following");
+            holder.btnFollow.setEnabled(false);
+            holder.btnFollow.setAlpha(0.6f);
+        } else {
+            holder.btnFollow.setText("Follow");
+            holder.btnFollow.setEnabled(true);
+            holder.btnFollow.setAlpha(1.0f);
+            holder.btnFollow.setOnClickListener(v -> {
+                String token = SharedPrefManager.getInstance(context).getToken();
+                RetrofitClient.getInstance(token).getApi().followUser(userId).enqueue(new retrofit2.Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
+                        if (response.isSuccessful()) {
+                            holder.btnFollow.setText("Following");
+                            holder.btnFollow.setEnabled(false);
+                            holder.btnFollow.setAlpha(0.6f);
+                            Toast.makeText(context, "Following " + name, Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
-                @Override
-                public void onFailure(retrofit2.Call<JsonObject> call, Throwable t) {}
+                    @Override
+                    public void onFailure(retrofit2.Call<JsonObject> call, Throwable t) {}
+                });
             });
-        });
+        }
     }
 
     @Override

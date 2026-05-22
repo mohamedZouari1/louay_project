@@ -308,8 +308,8 @@ def social_search_users_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def social_suggestions_view(request):
-    followed_ids = UserFollow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-    suggestions = User.objects.exclude(
+    followed_ids = list(UserFollow.objects.filter(follower=request.user).values_list('following_id', flat=True))
+    suggestions_qs = User.objects.exclude(
         id=request.user.id
     ).exclude(
         id__in=followed_ids
@@ -318,8 +318,29 @@ def social_suggestions_view(request):
         following_count_annotated=Count('following', distinct=True)
     ).order_by('?')[:10]
 
-    serializer = UserSearchSerializer(suggestions, many=True, context={'request': request})
-    return Response(serializer.data)
+    suggestions_list = list(suggestions_qs)
+
+    # Fallback to display users they already follow if there are less than 5 other users
+    if len(suggestions_list) < 5:
+        needed = 5 - len(suggestions_list)
+        existing_ids = [u.id for u in suggestions_list] + [request.user.id]
+        extra_users = User.objects.exclude(
+            id__in=existing_ids
+        ).select_related('profile').annotate(
+            followers_count_annotated=Count('followers', distinct=True),
+            following_count_annotated=Count('following', distinct=True)
+        ).order_by('?')[:needed]
+        suggestions_list.extend(list(extra_users))
+
+    serializer = UserSearchSerializer(suggestions_list, many=True, context={'request': request})
+    
+    # Dynamically inject the follow state
+    data_list = []
+    for item in serializer.data:
+        item['is_following'] = item['id'] in followed_ids
+        data_list.append(item)
+
+    return Response(data_list)
 
 
 @api_view(['GET'])

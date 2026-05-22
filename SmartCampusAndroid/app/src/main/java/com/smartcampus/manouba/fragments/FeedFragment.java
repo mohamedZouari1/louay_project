@@ -116,11 +116,13 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
         if (swipeRefresh != null) swipeRefresh.setRefreshing(true);
         fetchFeed(true);
         loadSuggestions();
+        loadMyProfile();
     }
 
     private void loadFeedSilent() {
         fetchFeed(false);
         loadSuggestions();
+        loadMyProfile();
     }
 
     private void fetchFeed(boolean showSpinner) {
@@ -292,6 +294,34 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
                     @Override
                     public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
                         // Silent failure for suggestions so as not to interrupt core feed experience
+                    }
+                });
+    }
+
+    private void loadMyProfile() {
+        android.content.Context ctx = getContext();
+        if (ctx == null) return;
+        String token = SharedPrefManager.getInstance(ctx).getToken();
+        RetrofitClient.getInstance(token).getApi().getProfile()
+                .enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(@NonNull Call<JsonObject> call,
+                                           @NonNull Response<JsonObject> response) {
+                        if (!isAdded() || getContext() == null) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            JsonObject profile = response.body();
+                            if (profile.has("avatar") && !profile.get("avatar").isJsonNull()) {
+                                String avatarUrl = profile.get("avatar").getAsString();
+                                if (adapter != null) {
+                                    adapter.setMyAvatarUrl(avatarUrl);
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+                        // Silent failure
                     }
                 });
     }

@@ -104,7 +104,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public int getItemViewType(int position) {
         if (showHeader && position == 0) return TYPE_HEADER;
-        if (suggestions != null && !suggestions.isEmpty() && position == 2) return TYPE_SUGGESTIONS;
+        if (suggestions != null && !suggestions.isEmpty() && position == 1) return TYPE_SUGGESTIONS;
         return TYPE_POST;
     }
 
@@ -133,7 +133,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             // Calculate correct index in 'posts' list
             int offset = 0;
             if (showHeader) offset++;
-            if (suggestions != null && !suggestions.isEmpty() && position > 2) offset++;
+            if (suggestions != null && !suggestions.isEmpty() && position > 1) offset++;
             
             int dataPos = position - offset;
             if (dataPos >= 0 && dataPos < posts.size()) {
