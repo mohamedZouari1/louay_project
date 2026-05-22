@@ -164,11 +164,7 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
     private boolean postsEqual(List<JsonObject> a, List<JsonObject> b) {
         if (a.size() != b.size()) return false;
         for (int i = 0; i < a.size(); i++) {
-            int idA = a.get(i).has("id") ? a.get(i).get("id").getAsInt() : -1;
-            int idB = b.get(i).has("id") ? b.get(i).get("id").getAsInt() : -1;
-            int likesA = a.get(i).has("likes_count") ? a.get(i).get("likes_count").getAsInt() : 0;
-            int likesB = b.get(i).has("likes_count") ? b.get(i).get("likes_count").getAsInt() : 0;
-            if (idA != idB || likesA != likesB) return false;
+            if (!a.get(i).toString().equals(b.get(i).toString())) return false;
         }
         return true;
     }
@@ -176,23 +172,41 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
     // ── Post interactions ─────────────────────────────────────────────────────
 
     private void handleLike(int postId, boolean isCurrentlyLiked, int position) {
+        int dataPos = adapter.getDataPosition(position);
+        if (dataPos < 0 || dataPos >= posts.size()) return;
+
+        JsonObject post = posts.get(dataPos);
+        int oldCount = post.has("likes_count") ? post.get("likes_count").getAsInt() : 0;
+        boolean nowLiked = !isCurrentlyLiked;
+        int optimisticCount = Math.max(0, oldCount + (nowLiked ? 1 : -1));
+        post.addProperty("is_liked_by_me", nowLiked);
+        post.addProperty("likes_count", optimisticCount);
+        adapter.notifyItemChanged(position);
+
         String token = SharedPrefManager.getInstance(requireContext()).getToken();
         Callback<JsonObject> cb = new Callback<JsonObject>() {
             @Override
             public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
-                if (!isAdded() || !response.isSuccessful() || response.body() == null) return;
-                boolean nowLiked = !isCurrentlyLiked;
+                if (!isAdded()) return;
+                if (!response.isSuccessful() || response.body() == null) {
+                    post.addProperty("is_liked_by_me", isCurrentlyLiked);
+                    post.addProperty("likes_count", oldCount);
+                    adapter.notifyItemChanged(position);
+                    return;
+                }
                 int newCount = response.body().has("likes_count")
                         ? response.body().get("likes_count").getAsInt() : 0;
-                if (position < posts.size()) {
-                    posts.get(position).addProperty("is_liked_by_me", nowLiked);
-                    posts.get(position).addProperty("likes_count", newCount);
-                    adapter.notifyItemChanged(position);
-                }
+                post.addProperty("is_liked_by_me", nowLiked);
+                post.addProperty("likes_count", newCount);
+                adapter.notifyItemChanged(position);
             }
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                if (isAdded()) Toast.makeText(requireContext(), "Like failed", Toast.LENGTH_SHORT).show();
+                if (!isAdded()) return;
+                post.addProperty("is_liked_by_me", isCurrentlyLiked);
+                post.addProperty("likes_count", oldCount);
+                adapter.notifyItemChanged(position);
+                Toast.makeText(requireContext(), "Like failed", Toast.LENGTH_SHORT).show();
             }
         };
         if (isCurrentlyLiked) {
@@ -203,6 +217,9 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
     }
 
     private void handleComment(int postId, int position) {
+        int dataPos = adapter.getDataPosition(position);
+        if (dataPos < 0 || dataPos >= posts.size()) return;
+
         android.widget.EditText input = new android.widget.EditText(requireContext());
         input.setHint("Write a comment...");
         input.setPadding(48, 32, 48, 32);
@@ -221,13 +238,13 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
                                 public void onResponse(@NonNull Call<JsonObject> call,
                                                        @NonNull Response<JsonObject> response) {
                                     if (!isAdded()) return;
-                                    if (response.isSuccessful()) {
-                                        if (position < posts.size()) {
-                                            int cur = posts.get(position).has("comments_count")
-                                                    ? posts.get(position).get("comments_count").getAsInt() : 0;
-                                            posts.get(position).addProperty("comments_count", cur + 1);
-                                            adapter.notifyItemChanged(position);
-                                        }
+                                    if (response.isSuccessful() && response.body() != null) {
+                                        JsonObject post = posts.get(dataPos);
+                                        int cur = post.has("comments_count")
+                                                ? post.get("comments_count").getAsInt() : 0;
+                                        post.addProperty("comments_count", cur + 1);
+                                        post.add("first_comment", response.body());
+                                        adapter.notifyItemChanged(position);
                                         Toast.makeText(requireContext(), "Comment posted!", Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -259,9 +276,11 @@ public class FeedFragment extends Fragment implements PostsAdapter.OnComposeClic
                                 public void onResponse(@NonNull Call<JsonObject> call,
                                                        @NonNull Response<JsonObject> response) {
                                     if (!isAdded()) return;
-                                    if (response.isSuccessful()) {
+                                    if (response.isSuccessful() && response.body() != null) {
+                                        posts.add(0, response.body());
+                                        adapter.notifyDataSetChanged();
                                         Toast.makeText(requireContext(), "Reposted!", Toast.LENGTH_SHORT).show();
-                                        loadFeed();
+                                        loadFeedSilent();
                                     }
                                 }
                                 @Override

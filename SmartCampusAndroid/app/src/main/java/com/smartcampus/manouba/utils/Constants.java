@@ -27,7 +27,7 @@ public class Constants {
 
     // Polling intervals (milliseconds)
     public static final long POLL_CHAT_MS  = 5_000L;   // 5 seconds
-    public static final long POLL_FEED_MS  = 30_000L;  // 30 seconds
+    public static final long POLL_FEED_MS  = 5_000L;   // 5 seconds
 
     // Request codes
     public static final int REQUEST_RECORD_AUDIO = 1001;

@@ -101,6 +101,13 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void setRepostListener(OnRepostClickListener l)       { this.repostListener = l; }
     public void setComposeClickListener(OnComposeClickListener l){ this.composeClickListener = l; }
 
+    public int getDataPosition(int adapterPosition) {
+        int offset = 0;
+        if (showHeader) offset++;
+        if (suggestions != null && !suggestions.isEmpty() && adapterPosition > 1) offset++;
+        return adapterPosition - offset;
+    }
+
     @Override
     public int getItemViewType(int position) {
         if (showHeader && position == 0) return TYPE_HEADER;
@@ -131,11 +138,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             bindSuggestions((SuggestionsViewHolder) holder);
         } else {
             // Calculate correct index in 'posts' list
-            int offset = 0;
-            if (showHeader) offset++;
-            if (suggestions != null && !suggestions.isEmpty() && position > 1) offset++;
-            
-            int dataPos = position - offset;
+            int dataPos = getDataPosition(position);
             if (dataPos >= 0 && dataPos < posts.size()) {
                 bindPost((PostViewHolder) holder, dataPos);
             }

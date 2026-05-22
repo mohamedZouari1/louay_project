@@ -529,7 +529,7 @@ public class ChatMessagesFragment extends Fragment {
                 sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 Date date = sdf.parse(isoTime);
                 if (date == null) continue;
-                SimpleDateFormat out = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                SimpleDateFormat out = new SimpleDateFormat("HH'h'mm d MMM", Locale.getDefault());
                 return out.format(date);
             } catch (ParseException ignored) {}
         }
