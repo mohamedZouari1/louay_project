@@ -19,12 +19,16 @@ def upload_attachment(uploaded_file, folder):
 
     import cloudinary.uploader
 
+    try:
+        uploaded_file.seek(0)
+    except Exception:
+        pass
+
     result = cloudinary.uploader.upload(
         uploaded_file,
         folder=folder,
         resource_type="auto",
         type="upload",
-        access_mode="public",
         use_filename=True,
         unique_filename=True,
     )
