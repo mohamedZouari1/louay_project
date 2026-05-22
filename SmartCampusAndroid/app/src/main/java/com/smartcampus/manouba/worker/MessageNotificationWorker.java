@@ -10,20 +10,19 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import com.google.gson.JsonObject;
 import com.smartcampus.manouba.MainActivity;
 import com.smartcampus.manouba.R;
-import com.smartcampus.manouba.model.Event;
 import com.smartcampus.manouba.network.RetrofitClient;
 import com.smartcampus.manouba.utils.Constants;
 import com.smartcampus.manouba.utils.SharedPrefManager;
 import java.io.IOException;
-import java.util.List;
 import retrofit2.Response;
 
-public class EventNotificationWorker extends Worker {
+public class MessageNotificationWorker extends Worker {
 
-    public EventNotificationWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
-        super(context, workerParams);
+    public MessageNotificationWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+        super(context, params);
     }
 
     @NonNull
@@ -31,20 +30,23 @@ public class EventNotificationWorker extends Worker {
     public Result doWork() {
         SharedPrefManager prefs = SharedPrefManager.getInstance(getApplicationContext());
         String token = prefs.getToken();
-        // Use token auth if logged in, otherwise skip
+        if (token == null) return Result.success(); // Not logged in
+
         try {
-            Response<List<Event>> response = RetrofitClient.getInstance(token)
-                    .getApi().getEvents().execute();
+            Response<JsonObject> response = RetrofitClient.getInstance(token)
+                    .getApi().getUnreadCount().execute();
 
-            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                List<Event> events = response.body();
-                Event latestEvent = events.get(0);
+            if (response.isSuccessful() && response.body() != null) {
+                int unread = response.body().has("unread")
+                        ? response.body().get("unread").getAsInt() : 0;
+                int lastKnown = prefs.getLastUnreadMsgCount();
 
-                int lastEventId = prefs.getLastEventId();
-
-                if (latestEvent.getId() > lastEventId) {
-                    prefs.setLastEventId(latestEvent.getId());
-                    sendNotification(latestEvent);
+                if (unread > 0 && unread > lastKnown) {
+                    prefs.setLastUnreadMsgCount(unread);
+                    showNotification(unread);
+                } else if (unread == 0) {
+                    // Reset so next time messages arrive we notify again
+                    prefs.setLastUnreadMsgCount(0);
                 }
             }
             return Result.success();
@@ -53,17 +55,17 @@ public class EventNotificationWorker extends Worker {
         }
     }
 
-    private void sendNotification(Event event) {
+    private void showNotification(int unreadCount) {
         NotificationManager nm = (NotificationManager)
                 getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (nm == null) return;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    Constants.CHANNEL_EVENTS,
-                    "Events",
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("New campus event notifications");
+                    Constants.CHANNEL_MESSAGES,
+                    "Messages",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("New chat message notifications");
             nm.createNotificationChannel(channel);
         }
 
@@ -72,17 +74,20 @@ public class EventNotificationWorker extends Worker {
         PendingIntent pi = PendingIntent.getActivity(
                 getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
+        String text = unreadCount == 1
+                ? "You have 1 new message"
+                : "You have " + unreadCount + " new messages";
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                getApplicationContext(), Constants.CHANNEL_EVENTS)
+                getApplicationContext(), Constants.CHANNEL_MESSAGES)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("📅 New Event: " + event.getTitle())
-                .setContentText(event.getSubtitle() != null ? event.getSubtitle() : event.getDateDisplay())
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(event.getDescription() != null ? event.getDescription() : ""))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentTitle("Smart Campus")
+                .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pi)
                 .setAutoCancel(true);
 
-        nm.notify(1, builder.build());
+        nm.notify(2, builder.build());
     }
 }

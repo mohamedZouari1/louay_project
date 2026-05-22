@@ -13,7 +13,6 @@ import retrofit2.http.*;
 public interface ApiService {
 
     // ── Auth ────────────────────────────────────────────────────────────────
-    // ── Auth ────────────────────────────────────────────────────────────────
     @POST("auth/register/")
     Call<JsonObject> register(@Body JsonObject body);
     @POST("auth/login/")
@@ -56,11 +55,21 @@ public interface ApiService {
     // ── Social Hub ──────────────────────────────────────────────────────────
     @GET("social/feed/")
     Call<List<JsonObject>> getFeed();
+
+    /** Create post with image (multipart) */
     @Multipart
     @POST("social/posts/")
     Call<JsonObject> createPost(
             @Part("content") RequestBody content,
             @Part MultipartBody.Part image
+    );
+
+    /** Create post with file/audio (multipart) */
+    @Multipart
+    @POST("social/posts/")
+    Call<JsonObject> createPostWithFile(
+            @Part("content") RequestBody content,
+            @Part MultipartBody.Part file
     );
 
     /** Create a text-only post (no image) via JSON */
@@ -95,18 +104,39 @@ public interface ApiService {
     Call<List<JsonObject>> getConversations();
     @GET("chat/messages/{id}/")
     Call<List<JsonObject>> getMessages(@Path("id") int otherUserId);
-    
     @POST("chat/messages/{id}/")
     Call<JsonObject> sendMessage(@Path("id") int otherUserId, @Body JsonObject body);
 
+    /** Send image-only message */
     @Multipart
     @POST("chat/messages/{id}/")
-    Call<JsonObject> sendMediaMessage(
+    Call<JsonObject> sendImageMessage(
             @Path("id") int otherUserId,
             @Part("content") RequestBody content,
-            @Part MultipartBody.Part image,
+            @Part MultipartBody.Part image
+    );
+
+    /** Send file/audio-only message */
+    @Multipart
+    @POST("chat/messages/{id}/")
+    Call<JsonObject> sendFileMessage(
+            @Path("id") int otherUserId,
+            @Part("content") RequestBody content,
             @Part MultipartBody.Part file
     );
+
+    @GET("chat/unread/")
+    Call<JsonObject> getUnreadCount();
+
+    // ── Notifications ──────────────────────────────────────────────────────
+    @GET("notifications/")
+    Call<List<JsonObject>> getNotifications();
+    @POST("notifications/read/")
+    Call<JsonObject> markNotificationsRead();
+    @GET("notifications/count/")
+    Call<JsonObject> getNotificationCount();
+
+    // ── Profile Image ──────────────────────────────────────────────────────
     @Multipart
     @POST("profile/image/")
     Call<JsonObject> updateProfileImage(@Part MultipartBody.Part avatar);

@@ -6,17 +6,24 @@ from rest_framework.authtoken.models import Token
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Count, Exists, OuterRef, Prefetch
 
-from .models import CampusLocation, Event, Report, Favorite, CampusStat, Post, PostLike, UserFollow, Message, Conversation, PostComment, EventRegistration
+from .models import (CampusLocation, Event, Report, Favorite, CampusStat,
+                     Post, PostLike, UserFollow, Message, Conversation, PostComment,
+                     EventRegistration, Notification)
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     CampusLocationSerializer, EventSerializer, ReportSerializer,
     FavoriteSerializer, CampusStatSerializer,
     PostSerializer, UserSearchSerializer,
     PostCommentSerializer, MessageSerializer, ConversationSerializer,
+    NotificationSerializer,
 )
 
+
+# ─────────────────────────────────────────
+#  Auth Views
+# ─────────────────────────────────────────
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -30,8 +37,7 @@ def register_view(request):
             'token': token.key,
             'user': UserSerializer(user).data,
         }, status=status.HTTP_201_CREATED)
-    
-    # Print errors to the console for debugging on Render
+
     print(f"DEBUG: Registration failed. Errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -67,6 +73,10 @@ def logout_view(request):
     return Response({'message': 'Logged out successfully'})
 
 
+# ─────────────────────────────────────────
+#  Profile Views
+# ─────────────────────────────────────────
+
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
 def profile_view(request):
@@ -95,10 +105,17 @@ def profile_view(request):
 @permission_classes([IsAuthenticated])
 def get_following_view(request):
     following_ids = request.user.following.values_list('following_id', flat=True)
-    following_users = User.objects.filter(id__in=following_ids)
+    following_users = User.objects.filter(id__in=following_ids).select_related('profile').annotate(
+        followers_count_annotated=Count('followers', distinct=True),
+        following_count_annotated=Count('following', distinct=True)
+    )
     serializer = UserSearchSerializer(following_users, many=True, context={'request': request})
     return Response(serializer.data)
 
+
+# ─────────────────────────────────────────
+#  Campus Data Views
+# ─────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -126,6 +143,10 @@ def stats_view(request):
     serializer = CampusStatSerializer(stats, many=True)
     return Response(serializer.data)
 
+
+# ─────────────────────────────────────────
+#  Reports & Favorites Views
+# ─────────────────────────────────────────
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -170,14 +191,25 @@ def favorite_delete_view(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-# ──────────────────────────────────────────
+# ─────────────────────────────────────────
 #  Social Hub Views
-# ──────────────────────────────────────────
+# ─────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def social_feed_view(request):
-    posts = Post.objects.select_related('author', 'author__profile').all().order_by('-created_at')[:30]
+    comments_queryset = PostComment.objects.select_related('author', 'author__profile')
+    posts = Post.objects.select_related(
+        'author', 'author__profile', 'repost_of', 'repost_of__author', 'repost_of__author__profile'
+    ).prefetch_related(
+        Prefetch('comments', queryset=comments_queryset, to_attr='prefetched_comments')
+    ).annotate(
+        annotated_likes_count=Count('likes', distinct=True),
+        annotated_comments_count=Count('comments', distinct=True),
+        is_liked=Exists(
+            PostLike.objects.filter(user=request.user, post=OuterRef('pk'))
+        )
+    ).all().order_by('-created_at')[:50]
     serializer = PostSerializer(posts, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -189,7 +221,7 @@ def social_create_post_view(request):
     content = request.data.get('content', '')
     if not content and 'content' in request.POST:
         content = request.POST.get('content', '')
-    
+
     content = str(content).strip()
     if not content:
         return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -197,6 +229,8 @@ def social_create_post_view(request):
     post = Post(author=request.user, content=content)
     if 'image' in request.FILES:
         post.image = request.FILES['image']
+    if 'file' in request.FILES:
+        post.file = request.FILES['file']
     post.save()
 
     serializer = PostSerializer(post, context={'request': request})
@@ -213,6 +247,15 @@ def social_like_post_view(request, pk):
 
     if request.method == 'POST':
         like, created = PostLike.objects.get_or_create(user=request.user, post=post)
+        # Create notification for post author
+        if created and post.author != request.user:
+            Notification.objects.create(
+                recipient=post.author,
+                sender=request.user,
+                notification_type='like',
+                title=f"{request.user.first_name or request.user.username} liked your post",
+                body=post.content[:100] if post.content else '',
+            )
         return Response({
             'liked': True,
             'likes_count': post.likes.count(),
@@ -230,7 +273,8 @@ def social_like_post_view(request, pk):
 @permission_classes([IsAuthenticated])
 def social_create_text_post_view(request):
     content = request.data.get('content', '')
-    if isinstance(content, list): content = content[0] if content else ''
+    if isinstance(content, list):
+        content = content[0] if content else ''
     content = str(content).strip()
     if not content:
         return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -252,7 +296,10 @@ def social_search_users_view(request):
         Q(last_name__icontains=q) |
         Q(username__icontains=q) |
         Q(profile__university__icontains=q)
-    ).exclude(id=request.user.id).select_related('profile')[:20]
+    ).exclude(id=request.user.id).select_related('profile').annotate(
+        followers_count_annotated=Count('followers', distinct=True),
+        following_count_annotated=Count('following', distinct=True)
+    )[:20]
 
     serializer = UserSearchSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
@@ -266,8 +313,11 @@ def social_suggestions_view(request):
         id=request.user.id
     ).exclude(
         id__in=followed_ids
-    ).select_related('profile').order_by('?')[:10]
-    
+    ).select_related('profile').annotate(
+        followers_count_annotated=Count('followers', distinct=True),
+        following_count_annotated=Count('following', distinct=True)
+    ).order_by('?')[:10]
+
     serializer = UserSearchSerializer(suggestions, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -276,15 +326,29 @@ def social_suggestions_view(request):
 @permission_classes([IsAuthenticated])
 def social_public_profile_view(request, pk):
     try:
-        user = User.objects.select_related('profile').get(pk=pk)
+        user = User.objects.select_related('profile').annotate(
+            followers_count_annotated=Count('followers', distinct=True),
+            following_count_annotated=Count('following', distinct=True)
+        ).get(pk=pk)
     except User.DoesNotExist:
         return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     is_following = UserFollow.objects.filter(follower=request.user, following=user).exists()
     user_data = UserSearchSerializer(user, context={'request': request}).data
     user_data['is_following'] = is_following
-    
-    posts = Post.objects.filter(author=user).order_by('-created_at')[:10]
+
+    comments_queryset = PostComment.objects.select_related('author', 'author__profile')
+    posts = Post.objects.filter(author=user).select_related(
+        'author', 'author__profile', 'repost_of', 'repost_of__author', 'repost_of__author__profile'
+    ).prefetch_related(
+        Prefetch('comments', queryset=comments_queryset, to_attr='prefetched_comments')
+    ).annotate(
+        annotated_likes_count=Count('likes', distinct=True),
+        annotated_comments_count=Count('comments', distinct=True),
+        is_liked=Exists(
+            PostLike.objects.filter(user=request.user, post=OuterRef('pk'))
+        )
+    ).order_by('-created_at')[:10]
     posts_data = PostSerializer(posts, many=True, context={'request': request}).data
 
     return Response({
@@ -305,7 +369,14 @@ def social_follow_view(request, pk):
         return Response({'error': 'You cannot follow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'POST':
-        UserFollow.objects.get_or_create(follower=request.user, following=to_follow)
+        _, created = UserFollow.objects.get_or_create(follower=request.user, following=to_follow)
+        if created:
+            Notification.objects.create(
+                recipient=to_follow,
+                sender=request.user,
+                notification_type='follow',
+                title=f"{request.user.first_name or request.user.username} started following you",
+            )
         return Response({'followed': True}, status=status.HTTP_201_CREATED)
 
     elif request.method == 'DELETE':
@@ -322,7 +393,7 @@ def social_comments_view(request, pk):
         return Response({'error': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        comments = post.comments.all()
+        comments = post.comments.select_related('author', 'author__profile').all()
         serializer = PostCommentSerializer(comments, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -331,6 +402,15 @@ def social_comments_view(request, pk):
         if not content:
             return Response({'error': 'Content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
         comment = PostComment.objects.create(post=post, author=request.user, content=content)
+        # Notify post author
+        if post.author != request.user:
+            Notification.objects.create(
+                recipient=post.author,
+                sender=request.user,
+                notification_type='comment',
+                title=f"{request.user.first_name or request.user.username} commented on your post",
+                body=content[:100],
+            )
         serializer = PostCommentSerializer(comment, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -344,21 +424,45 @@ def social_repost_view(request, pk):
         return Response({'error': 'Post not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     content = request.data.get('content', '').strip()
-    repost = Post.objects.create(author=request.user, content=content, repost_of=original_post)
+    repost = Post.objects.create(
+        author=request.user,
+        content=content,
+        repost_of=original_post,
+        image=original_post.image,
+        file=original_post.file
+    )
     serializer = PostSerializer(repost, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+# ─────────────────────────────────────────
+#  Chat Views
+# ─────────────────────────────────────────
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def chat_list_view(request):
-    conversations = request.user.conversations.all()
+    participants_qs = User.objects.select_related('profile').annotate(
+        followers_count_annotated=Count('followers', distinct=True),
+        following_count_annotated=Count('following', distinct=True)
+    )
+    messages_qs = Message.objects.all().order_by('timestamp')
+    conversations = request.user.conversations.all().prefetch_related(
+        Prefetch('participants', queryset=participants_qs),
+        Prefetch('messages', queryset=messages_qs, to_attr='prefetched_messages')
+    ).annotate(
+        annotated_unread_count=Count(
+            'messages',
+            filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user)
+        )
+    ).order_by('-updated_at')
     serializer = ConversationSerializer(conversations, many=True, context={'request': request})
     return Response(serializer.data)
 
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def chat_messages_view(request, pk):
     try:
         other_user = User.objects.get(pk=pk)
@@ -366,7 +470,7 @@ def chat_messages_view(request, pk):
         return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     conversation = Conversation.objects.filter(participants=request.user).filter(participants=other_user).first()
-    
+
     if not conversation and request.method == 'POST':
         conversation = Conversation.objects.create()
         conversation.participants.add(request.user, other_user)
@@ -374,31 +478,93 @@ def chat_messages_view(request, pk):
     if request.method == 'GET':
         if not conversation:
             return Response([])
-        messages = conversation.messages.all().order_by('timestamp')
+        messages = conversation.messages.select_related('sender').all().order_by('timestamp')
+        # Mark received messages as read
+        messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
         serializer = MessageSerializer(messages, many=True, context={'request': request})
         return Response(serializer.data)
 
     elif request.method == 'POST':
         content = request.data.get('content', '')
-        if content is None: content = ""
+        if content is None:
+            content = ""
         content = str(content).strip()
-        
+
         image = request.FILES.get('image')
         file_obj = request.FILES.get('file')
 
         if not content and not image and not file_obj:
             return Response({'error': 'Message cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         message = Message.objects.create(
-            conversation=conversation, 
-            sender=request.user, 
+            conversation=conversation,
+            sender=request.user,
             content=content,
             image=image,
             file=file_obj
         )
+        # Update conversation timestamp
+        conversation.save()
+
+        # Create notification for the recipient
+        Notification.objects.create(
+            recipient=other_user,
+            sender=request.user,
+            notification_type='message',
+            title=f"New message from {request.user.first_name or request.user.username}",
+            body=content[:100] if content else '📎 Attachment',
+        )
+
         serializer = MessageSerializer(message, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def chat_unread_count_view(request):
+    """Returns count of unread messages sent to the current user."""
+    unread = Message.objects.filter(
+        conversation__participants=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+    return Response({'unread': unread})
+
+
+# ─────────────────────────────────────────
+#  Notifications Views
+# ─────────────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def notifications_view(request):
+    """Returns latest 30 notifications for the current user."""
+    notifications = Notification.objects.filter(recipient=request.user).select_related('sender', 'sender__profile')[:30]
+    serializer = NotificationSerializer(notifications, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def notifications_mark_read_view(request):
+    """Mark all notifications as read."""
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def notifications_unread_count_view(request):
+    count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    unread_msgs = Message.objects.filter(
+        conversation__participants=request.user,
+        is_read=False
+    ).exclude(sender=request.user).count()
+    return Response({'notifications': count, 'messages': unread_msgs, 'total': count + unread_msgs})
+
+
+# ─────────────────────────────────────────
+#  Event Registration
+# ─────────────────────────────────────────
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -418,7 +584,7 @@ def event_register_view(request, pk):
     elif action == 'cancel':
         reg.is_interested = False
         reg.is_attending = False
-    
+
     reg.save()
     return Response({
         'is_interested': reg.is_interested,
@@ -438,6 +604,8 @@ def update_profile_image(request):
         profile.save()
         return Response(UserSerializer(user, context={'request': request}).data)
     return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def ping_view(request):

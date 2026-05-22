@@ -1,54 +1,102 @@
 package com.smartcampus.manouba.fragments;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.gson.JsonObject;
 import com.smartcampus.manouba.R;
 import com.smartcampus.manouba.adapters.MessageAdapter;
 import com.smartcampus.manouba.model.ChatMessage;
+import com.smartcampus.manouba.network.RetrofitClient;
+import com.smartcampus.manouba.utils.Constants;
+import com.smartcampus.manouba.utils.SharedPrefManager;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
-import android.content.Intent;
-import android.net.Uri;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ChatMessagesFragment extends Fragment {
 
     private RecyclerView rvMessages;
-    private MessageAdapter adapter;
-    private List<ChatMessage> messageList;
     private EditText etMessage;
-    private ImageButton btnSend;
-    private ImageButton btnAdd;
-    private SwipeRefreshLayout swipeRefresh;
-    private ActivityResultLauncher<String> pickMediaLauncher;
+    private ImageButton btnSend, btnAttachImage, btnAttachFile, btnRecord;
+
+    private MessageAdapter adapter;
+    private final List<ChatMessage> messages = new ArrayList<>();
+
+    private int otherUserId = -1;
+    private String chatName = "";
+    private int myId = -1;
+
+    // Real-time polling
+    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private Runnable pollRunnable;
+    private int lastKnownMessageId = -1;
+
+    // Vocal recording
+    private MediaRecorder mediaRecorder;
+    private File audioFile;
+    private boolean isRecording = false;
+
+    // Image picker
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) sendImageMessage(uri);
+                }
+            });
+
+    // File picker
+    private final ActivityResultLauncher<String[]> filePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
+                if (uri != null) sendFileMessage(uri);
+            });
+
+    // Audio permission
+    private final ActivityResultLauncher<String> audioPerm =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted) toggleRecording();
+                else Toast.makeText(requireContext(), "Microphone permission required", Toast.LENGTH_SHORT).show();
+            });
 
     @Nullable
     @Override
@@ -57,220 +105,430 @@ public class ChatMessagesFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_chat_messages, container, false);
     }
 
-    private int otherUserId = -1;
-    private String token;
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String chatName = getArguments() != null ? getArguments().getString("chatName", "Discussion") : "Discussion";
-        String chatIdStr = getArguments() != null ? getArguments().getString("chatId", "-1") : "-1";
-        otherUserId = Integer.parseInt(chatIdStr);
-        token = com.smartcampus.manouba.utils.SharedPrefManager.getInstance(requireContext()).getToken();
+        if (getArguments() != null) {
+            String chatIdStr = getArguments().getString("chatId", "-1");
+            try { otherUserId = Integer.parseInt(chatIdStr); } catch (Exception e) { otherUserId = -1; }
+            chatName = getArguments().getString("chatName", "");
+        }
 
-        ((TextView) view.findViewById(R.id.tv_chat_detail_name)).setText(chatName);
-        
-        // Set initials
-        TextView tvInitials = view.findViewById(R.id.tv_chat_detail_initials);
-        String initials = "";
-        String[] parts = chatName.split(" ");
-        if (parts.length > 0 && !parts[0].isEmpty()) initials += parts[0].charAt(0);
-        if (parts.length > 1 && !parts[1].isEmpty()) initials += parts[1].charAt(0);
-        tvInitials.setText(initials.toUpperCase());
+        myId = SharedPrefManager.getInstance(requireContext()).getUserId();
 
-        view.findViewById(R.id.btn_chat_back).setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+        rvMessages      = view.findViewById(R.id.rv_messages);
+        etMessage       = view.findViewById(R.id.et_message);
+        btnSend         = view.findViewById(R.id.btn_send_message);
+        btnAttachImage  = null;
+        btnAttachFile   = null;
+        btnRecord       = null;
 
-        rvMessages = view.findViewById(R.id.rv_messages);
-        etMessage = view.findViewById(R.id.et_message);
-        btnSend = view.findViewById(R.id.btn_send_message);
-        btnAdd = view.findViewById(R.id.btn_chat_add);
-        swipeRefresh = view.findViewById(R.id.swipe_refresh_messages);
+        View btnBack = view.findViewById(R.id.btn_chat_back);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> androidx.navigation.Navigation.findNavController(v).navigateUp());
+        }
 
-        messageList = new ArrayList<>();
-        adapter = new MessageAdapter(messageList);
+        ImageButton btnAdd = view.findViewById(R.id.btn_chat_add);
+        if (btnAdd != null) {
+            btnAdd.setOnClickListener(this::showAttachmentOptions);
+        }
+
+        android.widget.TextView tvName = view.findViewById(R.id.tv_chat_detail_name);
+        android.widget.TextView tvInitials = view.findViewById(R.id.tv_chat_detail_initials);
+        if (tvName != null) {
+            tvName.setText(chatName);
+        }
+        if (tvInitials != null && !TextUtils.isEmpty(chatName)) {
+            tvInitials.setText(getInitials(chatName));
+        }
+
+        adapter = new MessageAdapter(messages);
         LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
         layoutManager.setStackFromEnd(true);
         rvMessages.setLayoutManager(layoutManager);
         rvMessages.setAdapter(adapter);
 
-        swipeRefresh.setOnRefreshListener(this::loadMessages);
-
-        pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), this::onMediaPicked);
+        btnSend.setOnClickListener(v -> sendTextMessage());
 
         loadMessages();
-        
-        btnSend.setOnClickListener(v -> sendMessage());
-        
-        btnAdd.setOnClickListener(v -> {
-            String text = etMessage.getText().toString().trim();
-            if (!TextUtils.isEmpty(text)) {
-                sendMessage();
-            } else {
-                pickMediaLauncher.launch("*/*");
-            }
-        });
-
-        etMessage.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND) {
-                sendMessage();
-                return true;
-            }
-            return false;
-        });
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startPolling();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopPolling();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        stopPolling();
+        cleanupRecorder();
+    }
+
+    // ── Polling ─────────────────────────────────────────────────────────────
+
+    private void startPolling() {
+        stopPolling();
+        pollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isAdded()) return;
+                loadMessagesSilent();
+                pollHandler.postDelayed(this, Constants.POLL_CHAT_MS);
+            }
+        };
+        pollHandler.postDelayed(pollRunnable, Constants.POLL_CHAT_MS);
+    }
+
+    private void stopPolling() {
+        if (pollRunnable != null) {
+            pollHandler.removeCallbacks(pollRunnable);
+            pollRunnable = null;
+        }
+    }
+
+    // ── Message loading ──────────────────────────────────────────────────────
 
     private void loadMessages() {
         if (otherUserId == -1) return;
-        com.smartcampus.manouba.network.RetrofitClient.getInstance(token).getApi().getMessages(otherUserId)
-                .enqueue(new retrofit2.Callback<List<com.google.gson.JsonObject>>() {
-            @Override
-            public void onResponse(retrofit2.Call<List<com.google.gson.JsonObject>> call, 
-                                   retrofit2.Response<List<com.google.gson.JsonObject>> response) {
-                if (!isAdded()) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    messageList.clear();
-                    for (com.google.gson.JsonObject json : response.body()) {
-                        String id = json.get("id").getAsString();
-                        String content = json.has("content") && !json.get("content").isJsonNull() ? json.get("content").getAsString() : "";
-                        String time = formatTime(json.get("timestamp").getAsString());
-                        boolean isMe = json.has("is_me") && json.get("is_me").getAsBoolean();
-                        String imageUrl = json.has("image_url") && !json.get("image_url").isJsonNull() ? json.get("image_url").getAsString() : null;
-                        String fileUrl = json.has("file_url") && !json.get("file_url").isJsonNull() ? json.get("file_url").getAsString() : null;
-                        messageList.add(new ChatMessage(id, content, time, isMe, imageUrl, fileUrl));
+        fetchMessages(true);
+    }
+
+    private void loadMessagesSilent() {
+        if (otherUserId == -1) return;
+        fetchMessages(false);
+    }
+
+    private void fetchMessages(boolean scrollToBottom) {
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        RetrofitClient.getInstance(token).getApi().getMessages(otherUserId)
+                .enqueue(new Callback<List<JsonObject>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<JsonObject>> call,
+                                           @NonNull Response<List<JsonObject>> response) {
+                        if (!isAdded()) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<JsonObject> raw = response.body();
+                            if (raw.isEmpty()) return;
+
+                            // Check if new messages arrived
+                            int newLastId = raw.get(raw.size() - 1).has("id")
+                                    ? raw.get(raw.size() - 1).get("id").getAsInt() : -1;
+
+                            if (newLastId != lastKnownMessageId || scrollToBottom) {
+                                lastKnownMessageId = newLastId;
+                                messages.clear();
+                                for (JsonObject msg : raw) {
+                                    messages.add(parseMessage(msg));
+                                }
+                                adapter.notifyDataSetChanged();
+                                rvMessages.scrollToPosition(messages.size() - 1);
+                            }
+                        }
                     }
-                    adapter.notifyDataSetChanged();
-                    rvMessages.scrollToPosition(messageList.size() - 1);
-                }
-                swipeRefresh.setRefreshing(false);
-            }
 
-            @Override
-            public void onFailure(retrofit2.Call<List<com.google.gson.JsonObject>> call, Throwable t) {
-                if (isAdded()) swipeRefresh.setRefreshing(false);
-            }
-        });
+                    @Override
+                    public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {}
+                });
     }
 
-    private void sendMessage() {
-        String text = etMessage.getText().toString().trim();
-        if (TextUtils.isEmpty(text) || otherUserId == -1) return;
+    private ChatMessage parseMessage(JsonObject msg) {
+        String id = msg.has("id") && !msg.get("id").isJsonNull() ? msg.get("id").getAsString() : null;
+        int senderId = msg.has("sender_id") ? msg.get("sender_id").getAsInt()
+                : (msg.has("sender") ? msg.get("sender").getAsInt() : -1);
+        boolean sentByMe = senderId == myId;
 
-        com.google.gson.JsonObject body = new com.google.gson.JsonObject();
-        body.addProperty("content", text);
+        String content = msg.has("content") && !msg.get("content").isJsonNull()
+                ? msg.get("content").getAsString() : "";
+        String imageUrl = msg.has("image_url") && !msg.get("image_url").isJsonNull()
+                ? msg.get("image_url").getAsString() : null;
+        String fileUrl = msg.has("file_url") && !msg.get("file_url").isJsonNull()
+                ? msg.get("file_url").getAsString() : null;
+        String timestamp = msg.has("timestamp") && !msg.get("timestamp").isJsonNull()
+                ? msg.get("timestamp").getAsString() : "";
 
-        btnSend.setEnabled(false);
-        btnAdd.setEnabled(false);
-
-        com.smartcampus.manouba.network.RetrofitClient.getInstance(token).getApi().sendMessage(otherUserId, body)
-                .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
-            @Override
-            public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, 
-                                   retrofit2.Response<com.google.gson.JsonObject> response) {
-                if (!isAdded()) return;
-                btnSend.setEnabled(true);
-                btnAdd.setEnabled(true);
-                
-                if (response.isSuccessful()) {
-                    etMessage.setText("");
-                    loadMessages(); // Refresh to show new message
-                } else {
-                    String err = "Failed to send";
-                    try { if (response.errorBody() != null) err += ": " + response.errorBody().string(); } catch (Exception e) {}
-                    Toast.makeText(requireContext(), err, Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
-                if (!isAdded()) return;
-                btnSend.setEnabled(true);
-                btnAdd.setEnabled(true);
-                Toast.makeText(requireContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        return new ChatMessage(id, content, formatTime(timestamp), sentByMe, imageUrl, fileUrl);
     }
 
-    private void onMediaPicked(Uri uri) {
-        if (uri == null) return;
-        sendMedia(uri);
-    }
+    // ── Send messages ─────────────────────────────────────────────────────────
 
-    private void sendMedia(Uri uri) {
+    private void sendTextMessage() {
+        String text = etMessage.getText() != null ? etMessage.getText().toString().trim() : "";
+        if (TextUtils.isEmpty(text)) return;
         if (otherUserId == -1) return;
 
-        try {
-            File file = getFileFromUri(uri);
-            if (file == null) return;
+        // Optimistic UI
+        ChatMessage optimistic = new ChatMessage(text, true, null, "Sending...");
+        messages.add(optimistic);
+        adapter.notifyItemInserted(messages.size() - 1);
+        rvMessages.scrollToPosition(messages.size() - 1);
+        etMessage.setText("");
 
-            String mimeType = requireContext().getContentResolver().getType(uri);
-            RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType != null ? mimeType : "application/octet-stream"), file);
-            MultipartBody.Part body;
-            
-            if (mimeType != null && mimeType.startsWith("image/")) {
-                body = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
-                sendMultipart(null, body, null);
-            } else {
-                body = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
-                sendMultipart(null, null, body);
-            }
-
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error processing file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        String token = SharedPrefManager.getInstance(requireContext()).getToken();
+        JsonObject body = new JsonObject();
+        body.addProperty("content", text);
+        RetrofitClient.getInstance(token).getApi().sendMessage(otherUserId, body)
+                .enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+                        if (!isAdded()) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            // Replace optimistic with real message
+                            int lastIdx = messages.size() - 1;
+                            messages.set(lastIdx, parseMessage(response.body()));
+                            adapter.notifyItemChanged(lastIdx);
+                        }
+                    }
+                    @Override
+                    public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+                        if (!isAdded()) return;
+                        // Remove optimistic on failure
+                        if (!messages.isEmpty()) {
+                            messages.remove(messages.size() - 1);
+                            adapter.notifyDataSetChanged();
+                        }
+                        Toast.makeText(requireContext(), "Failed to send message", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private void sendMultipart(MultipartBody.Part content, MultipartBody.Part image, MultipartBody.Part filePart) {
-        btnSend.setEnabled(false);
-        btnAdd.setEnabled(false);
-
-        RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "");
-
-        com.smartcampus.manouba.network.RetrofitClient.getInstance(token).getApi().sendMediaMessage(otherUserId, contentBody, image, filePart)
-                .enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
-            @Override
-            public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
-                if (!isAdded()) return;
-                btnSend.setEnabled(true);
-                btnAdd.setEnabled(true);
-                if (response.isSuccessful()) {
-                    loadMessages();
-                } else {
-                    Toast.makeText(requireContext(), "Failed to upload", Toast.LENGTH_SHORT).show();
-                }
+    private void showAttachmentOptions(View view) {
+        androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(requireContext(), view);
+        popup.getMenu().add(0, 1, 0, "📷 Send Image");
+        popup.getMenu().add(0, 2, 1, "📎 Send File");
+        popup.getMenu().add(0, 3, 2, isRecording ? "⏹️ Stop Recording" : "🎤 Record Voice");
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case 1:
+                    openImagePicker();
+                    return true;
+                case 2:
+                    openFilePicker();
+                    return true;
+                case 3:
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        toggleRecording();
+                    } else {
+                        audioPerm.launch(Manifest.permission.RECORD_AUDIO);
+                    }
+                    return true;
             }
-
-            @Override
-            public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
-                if (!isAdded()) return;
-                btnSend.setEnabled(true);
-                btnAdd.setEnabled(true);
-                Toast.makeText(requireContext(), "Upload error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            return false;
         });
+        popup.show();
     }
 
-    private File getFileFromUri(Uri uri) throws Exception {
-        InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
-        if (inputStream == null) return null;
-        File file = new File(requireContext().getCacheDir(), "upload_" + System.currentTimeMillis());
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, read);
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.setType("image/*");
+        imagePickerLauncher.launch(intent);
+    }
+
+    private void openFilePicker() {
+        filePickerLauncher.launch(new String[]{"*/*"});
+    }
+
+    private void sendImageMessage(Uri uri) {
+        try {
+            String mimeType = requireContext().getContentResolver().getType(uri);
+            if (mimeType == null) mimeType = "image/jpeg";
+            File file = uriToFile(uri);
+
+            String token = SharedPrefManager.getInstance(requireContext()).getToken();
+            RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "");
+            RequestBody fileBody = RequestBody.create(MediaType.parse(mimeType), file);
+            MultipartBody.Part part = MultipartBody.Part.createFormData("image", file.getName(), fileBody);
+
+            RetrofitClient.getInstance(token).getApi()
+                    .sendImageMessage(otherUserId, contentBody, part)
+                    .enqueue(messageSentCallback);
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Could not attach image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        outputStream.flush();
-        outputStream.close();
+    }
+
+    private void sendFileMessage(Uri uri) {
+        try {
+            String mimeType = requireContext().getContentResolver().getType(uri);
+            if (mimeType == null) mimeType = "application/octet-stream";
+            File file = uriToFile(uri);
+
+            String token = SharedPrefManager.getInstance(requireContext()).getToken();
+            RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "");
+            RequestBody fileBody = RequestBody.create(MediaType.parse(mimeType), file);
+            MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), fileBody);
+
+            RetrofitClient.getInstance(token).getApi()
+                    .sendFileMessage(otherUserId, contentBody, part)
+                    .enqueue(messageSentCallback);
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Could not attach file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendAudioMessage(File audioFile) {
+        try {
+            String token = SharedPrefManager.getInstance(requireContext()).getToken();
+            RequestBody contentBody = RequestBody.create(MediaType.parse("text/plain"), "🎤 Voice message");
+            RequestBody fileBody = RequestBody.create(MediaType.parse("audio/mp4"), audioFile);
+            MultipartBody.Part part = MultipartBody.Part.createFormData("file", audioFile.getName(), fileBody);
+
+            RetrofitClient.getInstance(token).getApi()
+                    .sendFileMessage(otherUserId, contentBody, part)
+                    .enqueue(messageSentCallback);
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Could not send voice message", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private final Callback<JsonObject> messageSentCallback = new Callback<JsonObject>() {
+        @Override
+        public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+            if (!isAdded()) return;
+            if (response.isSuccessful() && response.body() != null) {
+                messages.add(parseMessage(response.body()));
+                adapter.notifyItemInserted(messages.size() - 1);
+                rvMessages.scrollToPosition(messages.size() - 1);
+            } else {
+                Toast.makeText(requireContext(), "Failed to send: " + response.code(), Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+            if (isAdded()) Toast.makeText(requireContext(), "Network error", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    // ── Vocal recording ──────────────────────────────────────────────────────
+
+    private void toggleRecording() {
+        if (!isRecording) {
+            startRecording();
+        } else {
+            stopRecordingAndSend();
+        }
+    }
+
+    private void startRecording() {
+        audioFile = new File(requireContext().getCacheDir(),
+                "voice_msg_" + System.currentTimeMillis() + ".m4a");
+        try {
+            mediaRecorder = new MediaRecorder();
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setOutputFile(audioFile.getAbsolutePath());
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+            isRecording = true;
+            if (btnRecord != null) btnRecord.setImageResource(android.R.drawable.ic_media_pause);
+            Toast.makeText(requireContext(), "🎤 Recording... tap again to send", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Could not start recording", Toast.LENGTH_SHORT).show();
+            cleanupRecorder();
+        }
+    }
+
+    private void stopRecordingAndSend() {
+        if (mediaRecorder != null) {
+            try { mediaRecorder.stop(); } catch (Exception ignored) {}
+            cleanupRecorder();
+        }
+        isRecording = false;
+        if (btnRecord != null) btnRecord.setImageResource(android.R.drawable.ic_btn_speak_now);
+        if (audioFile != null && audioFile.exists() && audioFile.length() > 0) {
+            sendAudioMessage(audioFile);
+        }
+    }
+
+    private void cleanupRecorder() {
+        if (mediaRecorder != null) {
+            try { mediaRecorder.release(); } catch (Exception ignored) {}
+            mediaRecorder = null;
+        }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private File uriToFile(Uri uri) throws Exception {
+        android.content.ContentResolver resolver = requireContext().getContentResolver();
+        String displayName = null;
+        try (android.database.Cursor cursor = resolver.query(
+                uri, new String[]{android.provider.OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                displayName = cursor.getString(0);
+            }
+        }
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = "chat_attachment_" + System.currentTimeMillis();
+        }
+        
+        // Clean display name of invalid filesystem characters
+        displayName = displayName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+        InputStream inputStream = resolver.openInputStream(uri);
+        if (inputStream == null) throw new Exception("Cannot open URI");
+        
+        File cacheDir = requireContext().getCacheDir();
+        File tempFile = new File(cacheDir, "chat_" + System.currentTimeMillis() + "_" + displayName);
+        tempFile.deleteOnExit();
+        
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = inputStream.read(buf)) > 0) out.write(buf, 0, len);
+        }
         inputStream.close();
-        return file;
+        return tempFile;
+    }
+
+    private String getInitials(String name) {
+        if (name == null || name.trim().isEmpty()) return "SC";
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length >= 2) {
+            String p1 = parts[0].substring(0, 1).toUpperCase();
+            String p2 = parts[1].substring(0, 1).toUpperCase();
+            return p1 + p2;
+        } else if (parts.length == 1 && !parts[0].isEmpty()) {
+            String p = parts[0];
+            if (p.length() >= 2) {
+                return p.substring(0, 2).toUpperCase();
+            } else {
+                return p.substring(0, 1).toUpperCase();
+            }
+        }
+        return "SC";
     }
 
     private String formatTime(String isoTime) {
-        try {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", java.util.Locale.US);
-            java.util.Date date = sdf.parse(isoTime);
-            return new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(date);
-        } catch (Exception e) { return ""; }
+        if (isoTime == null || isoTime.isEmpty()) return "";
+        String[] formats = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        };
+        for (String fmt : formats) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(fmt, Locale.US);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date date = sdf.parse(isoTime);
+                if (date == null) continue;
+                SimpleDateFormat out = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                return out.format(date);
+            } catch (ParseException ignored) {}
+        }
+        return "";
     }
 }

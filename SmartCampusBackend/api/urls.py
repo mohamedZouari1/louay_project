@@ -9,6 +9,7 @@ urlpatterns = [
 
     # Profile
     path('profile/', views.profile_view, name='profile'),
+    path('profile/image/', views.update_profile_image, name='profile-image-update'),
 
     # Campus data
     path('locations/', views.locations_view, name='locations'),
@@ -23,7 +24,7 @@ urlpatterns = [
 
     # ── Social Hub ──────────────────────────
     path('social/feed/', views.social_feed_view, name='social-feed'),
-    path('social/feed', views.social_feed_view), 
+    path('social/feed', views.social_feed_view),
     path('social/posts/', views.social_create_post_view, name='social-create-post'),
     path('social/posts/text/', views.social_create_text_post_view, name='social-create-text-post'),
     path('social/posts/<int:pk>/like/', views.social_like_post_view, name='social-like-post'),
@@ -35,9 +36,16 @@ urlpatterns = [
     path('social/posts/<int:pk>/comments/', views.social_comments_view, name='social-comments'),
     path('social/posts/<int:pk>/repost/', views.social_repost_view, name='social-repost'),
 
-    # Chat
+    # ── Chat ────────────────────────────────
     path('chat/conversations/', views.chat_list_view, name='chat-list'),
     path('chat/messages/<int:pk>/', views.chat_messages_view, name='chat-messages'),
-    path('profile/image/', views.update_profile_image, name='profile-image-update'),
+    path('chat/unread/', views.chat_unread_count_view, name='chat-unread'),
+
+    # ── Notifications ───────────────────────
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/read/', views.notifications_mark_read_view, name='notifications-read'),
+    path('notifications/count/', views.notifications_unread_count_view, name='notifications-count'),
+
+    # Utility
     path('ping/', views.ping_view, name='ping'),
 ]

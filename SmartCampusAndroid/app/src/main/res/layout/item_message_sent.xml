@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="end"
@@ -15,6 +16,82 @@
         android:scaleType="fitCenter"
         android:visibility="gone"
         android:layout_marginBottom="4dp" />
+
+    <!-- File Attachment Block -->
+    <LinearLayout
+        android:id="@+id/ll_file_container_sent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:background="@drawable/shape_bubble_sent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_save"
+            android:layout_marginEnd="8dp"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_file_name_sent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="document.pdf" />
+    </LinearLayout>
+
+    <!-- Voice Recording Player Block -->
+    <LinearLayout
+        android:id="@+id/ll_audio_container_sent"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:background="@drawable/shape_bubble_sent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
+        android:visibility="gone"
+        android:layout_marginBottom="4dp">
+
+        <ImageButton
+            android:id="@+id/btn_play_audio_sent"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Play audio"
+            app:tint="@color/white" />
+
+        <SeekBar
+            android:id="@+id/sb_audio_progress_sent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="0"
+            android:thumbTint="@color/white"
+            android:progressTint="@color/white"
+            android:progressBackgroundTint="#80FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_audio_duration_sent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:text="0:00" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_message_sent"

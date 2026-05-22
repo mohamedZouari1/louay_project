@@ -89,4 +89,20 @@ public class SharedPrefManager {
     public void setLastEventId(int id) {
         prefs.edit().putInt(Constants.KEY_LAST_EVENT_ID, id).apply();
     }
+
+    public int getLastUnreadMsgCount() {
+        return prefs.getInt(Constants.KEY_LAST_UNREAD_MSG_COUNT, 0);
+    }
+
+    public void setLastUnreadMsgCount(int count) {
+        prefs.edit().putInt(Constants.KEY_LAST_UNREAD_MSG_COUNT, count).apply();
+    }
+
+    public int getLastNotificationCount() {
+        return prefs.getInt(Constants.KEY_LAST_NOTIFICATION_COUNT, 0);
+    }
+
+    public void setLastNotificationCount(int count) {
+        prefs.edit().putInt(Constants.KEY_LAST_NOTIFICATION_COUNT, count).apply();
+    }
 }

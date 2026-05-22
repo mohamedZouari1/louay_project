@@ -44,10 +44,26 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         void onLikeClick(int postId, boolean currentlyLiked, int position);
     }
 
+    public interface OnCommentClickListener {
+        void onCommentClick(int postId, int position);
+    }
+
+    public interface OnRepostClickListener {
+        void onRepostClick(int postId, int position);
+    }
+
+    /** Callback so FeedFragment can navigate to the Compose tab. */
+    public interface OnComposeClickListener {
+        void onComposeClick();
+    }
+
     private final Context context;
     private final List<JsonObject> posts;
     private final List<JsonObject> suggestions;
-    private final OnLikeClickListener likeListener;
+    private OnLikeClickListener likeListener;
+    private OnCommentClickListener commentListener;
+    private OnRepostClickListener repostListener;
+    private OnComposeClickListener composeClickListener;
     private final boolean showHeader;
     private String myAvatarUrl = null;
 
@@ -56,13 +72,29 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyItemChanged(0);
     }
 
-    public PostsAdapter(Context context, List<JsonObject> posts, List<JsonObject> suggestions, OnLikeClickListener likeListener, boolean showHeader) {
+    public PostsAdapter(Context context, List<JsonObject> posts, List<JsonObject> suggestions,
+                        OnLikeClickListener likeListener, boolean showHeader) {
         this.context = context;
         this.posts = posts;
         this.suggestions = suggestions;
         this.likeListener = likeListener;
         this.showHeader = showHeader;
     }
+
+    /** Alternative constructor used by FeedFragment (no suggestions, with compose callback). */
+    public PostsAdapter(List<JsonObject> posts, Context context, OnComposeClickListener composeClickListener) {
+        this.context = context;
+        this.posts = posts;
+        this.suggestions = null;
+        this.likeListener = null;
+        this.composeClickListener = composeClickListener;
+        this.showHeader = true;
+    }
+
+    public void setLikeListener(OnLikeClickListener listener)    { this.likeListener = listener; }
+    public void setCommentListener(OnCommentClickListener l)     { this.commentListener = l; }
+    public void setRepostListener(OnRepostClickListener l)       { this.repostListener = l; }
+    public void setComposeClickListener(OnComposeClickListener l){ this.composeClickListener = l; }
 
     @Override
     public int getItemViewType(int position) {
@@ -125,24 +157,21 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             holder.tvAvatar.setText(initials.toUpperCase());
         }
 
-        holder.btnStartPost.setOnClickListener(v -> {
-            String[] options = {"📝 Text Post", "🖼️ Photo/Video", "📎 Document", "🎤 Audio Message"};
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
-                .setTitle("What would you like to share?")
-                .setItems(options, (dialog, which) -> {
-                    try {
-                        View root = v.getRootView();
-                        if (root != null) {
-                            androidx.viewpager2.widget.ViewPager2 vp = root.findViewById(R.id.view_pager);
-                            if (vp != null) {
-                                vp.setCurrentItem(1, true);
-                                // Optional: pass the choice to ComposePostFragment via a shared ViewModel or result API
-                            }
-                        }
-                    } catch (Exception ignored) {}
-                })
-                .show();
-        });
+        View.OnClickListener composeListener = v -> {
+            if (composeClickListener != null) {
+                composeClickListener.onComposeClick();
+            }
+        };
+        holder.btnStartPost.setOnClickListener(composeListener);
+        if (holder.btnHeaderPhoto != null) {
+            holder.btnHeaderPhoto.setOnClickListener(composeListener);
+        }
+        if (holder.btnHeaderVideo != null) {
+            holder.btnHeaderVideo.setOnClickListener(composeListener);
+        }
+        if (holder.btnHeaderArticle != null) {
+            holder.btnHeaderArticle.setOnClickListener(composeListener);
+        }
     }
 
     private void bindPost(PostViewHolder holder, int position) {
@@ -192,11 +221,71 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         holder.tvContent.setText(getString(post, "content"));
 
         String imageUrl = getString(post, "image_url");
-        if (!imageUrl.isEmpty()) {
-            holder.ivPostImage.setVisibility(View.VISIBLE);
-            Glide.with(context).load(imageUrl).centerCrop().into(holder.ivPostImage);
-        } else {
-            holder.ivPostImage.setVisibility(View.GONE);
+        String fileUrl  = getString(post, "file_url");
+        boolean isRepost = post.has("repost_of_detail") && !post.get("repost_of_detail").isJsonNull();
+        if (holder.flPostMediaContainer != null) {
+            holder.flPostMediaContainer.setVisibility(View.GONE);
+        }
+        if (holder.llPostFileContainer != null) {
+            holder.llPostFileContainer.setVisibility(View.GONE);
+        }
+
+        if (!isRepost && !imageUrl.isEmpty()) {
+            if (holder.flPostMediaContainer != null) {
+                holder.flPostMediaContainer.setVisibility(View.VISIBLE);
+                holder.ivPostImage.setVisibility(View.VISIBLE);
+                if (holder.ivPlayButton != null) {
+                    holder.ivPlayButton.setVisibility(View.GONE);
+                }
+                Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(android.R.color.darker_gray)
+                        .error(android.R.drawable.ic_menu_gallery)
+                        .centerCrop()
+                        .into(holder.ivPostImage);
+                holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(imageUrl, false));
+            }
+        } else if (!isRepost && !fileUrl.isEmpty()) {
+            if (isVideoFile(fileUrl)) {
+                if (holder.flPostMediaContainer != null) {
+                    holder.flPostMediaContainer.setVisibility(View.VISIBLE);
+                    holder.ivPostImage.setVisibility(View.VISIBLE);
+                    if (holder.ivPlayButton != null) {
+                        holder.ivPlayButton.setVisibility(View.VISIBLE);
+                        holder.ivPlayButton.setOnClickListener(v -> showFullScreenMedia(fileUrl, true));
+                    }
+                    Glide.with(context)
+                            .asBitmap()
+                            .load(fileUrl)
+                            .placeholder(android.R.color.darker_gray)
+                            .error(android.R.drawable.ic_menu_gallery)
+                            .override(300, 300)
+                            .centerCrop()
+                            .into(holder.ivPostImage);
+                    holder.ivPostImage.setOnClickListener(v -> showFullScreenMedia(fileUrl, true));
+                }
+            } else {
+                if (holder.llPostFileContainer != null) {
+                    holder.llPostFileContainer.setVisibility(View.VISIBLE);
+                    String fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+                    // Decode URL percent-encoding to make the file name readable
+                    try {
+                        fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
+                    } catch (Exception ignored) {}
+                    if (holder.tvPostFileName != null) {
+                        holder.tvPostFileName.setText(fileName);
+                    }
+                    holder.llPostFileContainer.setOnClickListener(v -> {
+                        try {
+                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                            intent.setData(android.net.Uri.parse(fileUrl));
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            Toast.makeText(context, "Cannot open attachment", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
         }
 
         int likesCount = post.has("likes_count") ? post.get("likes_count").getAsInt() : 0;
@@ -220,34 +309,103 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         holder.tvAvatar.setOnClickListener(profileClick);
         holder.tvAuthorName.setOnClickListener(profileClick);
 
+        final int postId = post.has("id") ? post.get("id").getAsInt() : -1;
+
         holder.btnLikeRow.setOnClickListener(v -> {
             if (likeListener != null) {
-                int postId = post.has("id") ? post.get("id").getAsInt() : -1;
-                likeListener.onLikeClick(postId, isLiked, holder.getAdapterPosition());
+                // Re-read current like state from the post object to avoid stale captures
+                boolean currentlyLiked = post.has("is_liked_by_me") && post.get("is_liked_by_me").getAsBoolean();
+                likeListener.onLikeClick(postId, currentlyLiked, holder.getAdapterPosition());
             }
         });
 
         // Comment Action
         holder.btnCommentRow.setOnClickListener(v -> {
-            int postId = post.has("id") ? post.get("id").getAsInt() : -1;
-            showCommentsDialog(postId);
+            if (commentListener != null) {
+                commentListener.onCommentClick(postId, holder.getAdapterPosition());
+            } else {
+                showCommentsDialog(postId);
+            }
         });
 
         // Repost Action
         holder.btnRepostRow.setOnClickListener(v -> {
-            int postId = post.has("id") ? post.get("id").getAsInt() : -1;
-            showRepostDialog(postId);
+            if (repostListener != null) {
+                repostListener.onRepostClick(postId, holder.getAdapterPosition());
+            } else {
+                showRepostDialog(postId);
+            }
         });
 
         // Handle Repost Display
         if (post.has("repost_of_detail") && !post.get("repost_of_detail").isJsonNull()) {
             holder.llRepostContainer.setVisibility(View.VISIBLE);
             JsonObject original = post.getAsJsonObject("repost_of_detail");
-            JsonObject origAuthor = original.getAsJsonObject("author");
+            JsonObject origAuthor = original.has("author") && !original.get("author").isJsonNull()
+                    ? original.getAsJsonObject("author") : new JsonObject();
             holder.tvRepostAuthor.setText(getString(origAuthor, "first_name") + " " + getString(origAuthor, "last_name"));
             holder.tvRepostContent.setText(getString(original, "content"));
+
+            // Show media for original post if exists
+            String origImageUrl = getString(original, "image_url");
+            String origFileUrl  = getString(original, "file_url");
+            if (holder.flRepostMediaContainer != null) {
+                if (!origImageUrl.isEmpty()) {
+                    holder.flRepostMediaContainer.setVisibility(View.VISIBLE);
+                    if (holder.ivRepostMedia != null) {
+                        holder.ivRepostMedia.setVisibility(View.VISIBLE);
+                        Glide.with(context)
+                                .load(origImageUrl)
+                                .placeholder(android.R.color.darker_gray)
+                                .error(android.R.drawable.ic_menu_gallery)
+                                .centerCrop()
+                                .into(holder.ivRepostMedia);
+                        holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(origImageUrl, false));
+                    }
+                    if (holder.ivRepostPlayButton != null) {
+                        holder.ivRepostPlayButton.setVisibility(View.GONE);
+                    }
+                } else if (!origFileUrl.isEmpty()) {
+                    holder.flRepostMediaContainer.setVisibility(View.VISIBLE);
+                    if (isVideoFile(origFileUrl)) {
+                        if (holder.ivRepostMedia != null) {
+                            holder.ivRepostMedia.setVisibility(View.VISIBLE);
+                            Glide.with(context)
+                                    .asBitmap()
+                                    .load(origFileUrl)
+                                    .placeholder(android.R.color.darker_gray)
+                                    .error(android.R.drawable.ic_menu_gallery)
+                                    .override(300, 300)
+                                    .centerCrop()
+                                    .into(holder.ivRepostMedia);
+                            holder.ivRepostMedia.setOnClickListener(v -> showFullScreenMedia(origFileUrl, true));
+                        }
+                        if (holder.ivRepostPlayButton != null) {
+                            holder.ivRepostPlayButton.setVisibility(View.VISIBLE);
+                            holder.ivRepostPlayButton.setOnClickListener(v -> showFullScreenMedia(origFileUrl, true));
+                        }
+                    } else {
+                        if (holder.ivRepostMedia != null) {
+                            holder.ivRepostMedia.setVisibility(View.VISIBLE);
+                            holder.ivRepostMedia.setImageResource(android.R.drawable.ic_menu_save);
+                            holder.ivRepostMedia.setOnClickListener(v -> {
+                                String fileName = origFileUrl.substring(origFileUrl.lastIndexOf('/') + 1);
+                                Toast.makeText(context, "Attachment: " + fileName, Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                        if (holder.ivRepostPlayButton != null) {
+                            holder.ivRepostPlayButton.setVisibility(View.GONE);
+                        }
+                    }
+                } else {
+                    holder.flRepostMediaContainer.setVisibility(View.GONE);
+                }
+            }
         } else {
             holder.llRepostContainer.setVisibility(View.GONE);
+            if (holder.flRepostMediaContainer != null) {
+                holder.flRepostMediaContainer.setVisibility(View.GONE);
+            }
         }
 
         // Handle Comment Preview
@@ -276,7 +434,6 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             }
             
             View.OnClickListener openComments = v -> {
-                int postId = post.has("id") ? post.get("id").getAsInt() : -1;
                 showCommentsDialog(postId);
             };
             holder.tvViewMoreComments.setOnClickListener(openComments);
@@ -429,7 +586,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    private void updateLikeButton(ImageButton icon, TextView label, boolean liked) {
+    private void updateLikeButton(ImageView icon, TextView label, boolean liked) {
         if (liked) {
             icon.setImageResource(android.R.drawable.btn_star_big_on);
             icon.setColorFilter(Color.parseColor("#0A66C2"));
@@ -445,31 +602,129 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     private String formatRelativeTime(String isoTime) {
         if (isoTime == null || isoTime.isEmpty()) return "";
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.US);
-            Date date = sdf.parse(isoTime);
-            if (date == null) return "";
-            long diffMs = System.currentTimeMillis() - date.getTime();
-            long mins  = TimeUnit.MILLISECONDS.toMinutes(diffMs);
-            long hours = TimeUnit.MILLISECONDS.toHours(diffMs);
-            long days  = TimeUnit.MILLISECONDS.toDays(diffMs);
-            if (mins  < 1)  return "Just now";
-            if (mins  < 60) return mins  + "m";
-            if (hours < 24) return hours + "h";
-            if (days  < 7)  return days  + "d";
-            return days / 7 + "w";
-        } catch (ParseException e) { return ""; }
+        // Try multiple ISO 8601 formats Django might emit
+        String[] formats = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+                "yyyy-MM-dd HH:mm:ss"
+        };
+        for (String fmt : formats) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(fmt, Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                Date date = sdf.parse(isoTime);
+                if (date == null) continue;
+                long diffMs = System.currentTimeMillis() - date.getTime();
+                long mins  = TimeUnit.MILLISECONDS.toMinutes(diffMs);
+                long hours = TimeUnit.MILLISECONDS.toHours(diffMs);
+                long days  = TimeUnit.MILLISECONDS.toDays(diffMs);
+                if (mins  < 1)  return "Just now";
+                if (mins  < 60) return mins  + "m ago";
+                if (hours < 24) return hours + "h ago";
+                if (days  < 7)  return days  + "d ago";
+                return new SimpleDateFormat("MMM d", Locale.getDefault()).format(date);
+            } catch (ParseException ignored) {}
+        }
+        return "";
+    }
+
+    private boolean isVideoFile(String url) {
+        if (url == null || url.isEmpty()) return false;
+        String lower = url.toLowerCase(Locale.getDefault());
+        return lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") ||
+               lower.endsWith(".3gp") || lower.endsWith(".avi") || lower.contains("/video/");
+    }
+
+    private void showFullScreenMedia(String mediaUrl, boolean isVideo) {
+        if (mediaUrl == null || mediaUrl.isEmpty()) return;
+
+        android.app.Dialog dialog = new android.app.Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        dialog.setContentView(R.layout.dialog_fullscreen_media);
+
+        ImageView ivFullscreenImage = dialog.findViewById(R.id.iv_fullscreen_image);
+        android.widget.VideoView vvFullscreenVideo = dialog.findViewById(R.id.vv_fullscreen_video);
+        android.widget.ProgressBar pbLoading = dialog.findViewById(R.id.pb_loading);
+        ImageView ivClose = dialog.findViewById(R.id.iv_close_fullscreen);
+
+        ivClose.setOnClickListener(v -> dialog.dismiss());
+
+        if (isVideo) {
+            vvFullscreenVideo.setVisibility(View.VISIBLE);
+            ivFullscreenImage.setVisibility(View.GONE);
+            pbLoading.setVisibility(View.VISIBLE);
+
+            try {
+                android.net.Uri uri = android.net.Uri.parse(mediaUrl);
+                vvFullscreenVideo.setVideoURI(uri);
+
+                android.widget.MediaController mediaController = new android.widget.MediaController(context);
+                mediaController.setAnchorView(vvFullscreenVideo);
+                vvFullscreenVideo.setMediaController(mediaController);
+
+                vvFullscreenVideo.setOnPreparedListener(mp -> {
+                    pbLoading.setVisibility(View.GONE);
+                    vvFullscreenVideo.start();
+                });
+
+                vvFullscreenVideo.setOnErrorListener((mp, what, extra) -> {
+                    pbLoading.setVisibility(View.GONE);
+                    Toast.makeText(context, "Error playing video", Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+            } catch (Exception e) {
+                pbLoading.setVisibility(View.GONE);
+                Toast.makeText(context, "Invalid video path", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            vvFullscreenVideo.setVisibility(View.GONE);
+            ivFullscreenImage.setVisibility(View.VISIBLE);
+            pbLoading.setVisibility(View.VISIBLE);
+
+            Glide.with(context)
+                    .load(mediaUrl)
+                    .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@androidx.annotation.Nullable com.bumptech.glide.load.engine.GlideException e,
+                                                    Object model,
+                                                    com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                    boolean isFirstResource) {
+                            pbLoading.setVisibility(View.GONE);
+                            Toast.makeText(context, "Failed to load image", Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(android.graphics.drawable.Drawable resource,
+                                                       Object model,
+                                                       com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                       com.bumptech.glide.load.DataSource dataSource,
+                                                       boolean isFirstResource) {
+                            pbLoading.setVisibility(View.GONE);
+                            return false;
+                        }
+                    })
+                    .into(ivFullscreenImage);
+        }
+
+        dialog.show();
     }
 
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvAvatar;
         ImageView ivHeaderAvatar;
         MaterialButton btnStartPost;
+        View btnHeaderPhoto, btnHeaderVideo, btnHeaderArticle;
         HeaderViewHolder(@NonNull View itemView) {
             super(itemView);
             tvAvatar = itemView.findViewById(R.id.tv_header_avatar);
             ivHeaderAvatar = itemView.findViewById(R.id.iv_header_avatar);
             btnStartPost = itemView.findViewById(R.id.btn_start_post);
+            btnHeaderPhoto = itemView.findViewById(R.id.btn_header_photo);
+            btnHeaderVideo = itemView.findViewById(R.id.btn_header_video);
+            btnHeaderArticle = itemView.findViewById(R.id.btn_header_article);
         }
     }
 
@@ -485,10 +740,13 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         TextView   tvAvatar, tvAuthorName, tvUniversity, tvTimestamp, tvContent, tvLikesCount, tvLikeLabel;
         TextView   tvRepostAuthor, tvRepostContent;
         Chip       chipRole;
-        ImageView  ivPostImage, ivAuthorAvatar, ivCommentAuthorAvatar;
-        ImageButton ibLikeIcon;
+        ImageView  ivPostImage, ivAuthorAvatar, ivCommentAuthorAvatar, ivRepostMedia, ibLikeIcon;
         LinearLayout btnLikeRow, btnCommentRow, btnRepostRow, llLikeSummary, llRepostContainer, llCommentPreview;
         TextView   tvCommentAuthorName, tvCommentContentPreview, tvViewMoreComments;
+        View       flPostMediaContainer, flRepostMediaContainer;
+        ImageView  ivPlayButton, ivRepostPlayButton;
+        LinearLayout llPostFileContainer;
+        TextView   tvPostFileName;
 
         PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -511,12 +769,20 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             llRepostContainer = itemView.findViewById(R.id.ll_repost_container);
             tvRepostAuthor    = itemView.findViewById(R.id.tv_repost_author);
             tvRepostContent   = itemView.findViewById(R.id.tv_repost_content);
+            ivRepostMedia     = itemView.findViewById(R.id.iv_repost_media);
 
             llCommentPreview        = itemView.findViewById(R.id.ll_comment_preview);
             ivCommentAuthorAvatar   = itemView.findViewById(R.id.iv_comment_author_avatar);
             tvCommentAuthorName     = itemView.findViewById(R.id.tv_comment_author_name);
             tvCommentContentPreview = itemView.findViewById(R.id.tv_comment_content_preview);
             tvViewMoreComments      = itemView.findViewById(R.id.tv_view_more_comments);
+
+            flPostMediaContainer   = itemView.findViewById(R.id.fl_post_media_container);
+            flRepostMediaContainer = itemView.findViewById(R.id.fl_repost_media_container);
+            ivPlayButton           = itemView.findViewById(R.id.iv_play_button);
+            ivRepostPlayButton     = itemView.findViewById(R.id.iv_repost_play_button);
+            llPostFileContainer    = itemView.findViewById(R.id.ll_post_file_container);
+            tvPostFileName         = itemView.findViewById(R.id.tv_post_file_name);
         }
     }
 }

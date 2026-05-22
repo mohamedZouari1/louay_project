@@ -170,6 +170,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     content = models.TextField()
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    file = models.FileField(upload_to='post_files/', blank=True, null=True)  # vocal / document
     # post_type is automatically set from author's role on save
     post_type = models.CharField(max_length=10, choices=POST_TYPE_CHOICES, default='student')
     repost_of = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
@@ -266,3 +267,27 @@ class Repost(models.Model):
 
     def __str__(self):
         return f"{self.author.username} shared post #{self.original_post.id}"
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('message', 'New Message'),
+        ('event', 'New Event'),
+        ('like', 'Post Liked'),
+        ('follow', 'New Follower'),
+        ('comment', 'New Comment'),
+    ]
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    body = models.CharField(max_length=500, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.notification_type}] → {self.recipient.username}"
+
