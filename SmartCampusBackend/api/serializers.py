@@ -1,9 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+import mimetypes
+import os
 from .models import (
     UserProfile, CampusLocation, Event, Report, Favorite, CampusStat,
     Post, PostLike, UserFollow, PostComment, Conversation, Message, Repost, Notification
 )
+
+
+def get_file_name(file_field):
+    if not file_field:
+        return ''
+    return os.path.basename(file_field.name or '')
+
+
+def get_file_type(file_field):
+    if not file_field:
+        return ''
+    guessed_type, _ = mimetypes.guess_type(file_field.name or '')
+    return guessed_type or 'application/octet-stream'
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -256,12 +271,14 @@ class PostSerializer(serializers.ModelSerializer):
     is_liked_by_me = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    file_name = serializers.SerializerMethodField()
+    file_type = serializers.SerializerMethodField()
     repost_of_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = [
-            'id', 'author', 'content', 'image_url', 'file_url', 'post_type',
+            'id', 'author', 'content', 'image_url', 'file_url', 'file_name', 'file_type', 'post_type',
             'likes_count', 'comments_count', 'first_comment', 'is_liked_by_me',
             'repost_of', 'repost_of_detail', 'created_at',
         ]
@@ -308,6 +325,12 @@ class PostSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.file.url)
         return None
 
+    def get_file_name(self, obj):
+        return get_file_name(obj.file)
+
+    def get_file_type(self, obj):
+        return get_file_type(obj.file)
+
     def get_repost_of_detail(self, obj):
         if obj.repost_of:
             return PostSerializer(obj.repost_of, context=self.context).data
@@ -319,12 +342,15 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_id = serializers.ReadOnlyField(source='sender.id')
     image_url = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    file_name = serializers.SerializerMethodField()
+    file_type = serializers.SerializerMethodField()
     is_me = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         fields = ['id', 'sender', 'sender_id', 'sender_name', 'content',
-                  'image_url', 'file_url', 'timestamp', 'is_read', 'is_me']
+                  'image_url', 'file_url', 'file_name', 'file_type',
+                  'timestamp', 'is_read', 'is_me']
 
     def get_image_url(self, obj):
         request = self.context.get('request')
@@ -337,6 +363,12 @@ class MessageSerializer(serializers.ModelSerializer):
         if obj.file and request:
             return request.build_absolute_uri(obj.file.url)
         return None
+
+    def get_file_name(self, obj):
+        return get_file_name(obj.file)
+
+    def get_file_type(self, obj):
+        return get_file_type(obj.file)
 
     def get_is_me(self, obj):
         request = self.context.get('request')

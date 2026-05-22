@@ -20,6 +20,8 @@ import com.bumptech.glide.Glide;
 import com.smartcampus.manouba.R;
 import com.smartcampus.manouba.model.ChatMessage;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -88,24 +90,28 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         String imageUrl = msg.getImageUrl();
         String fileUrl = msg.getFileUrl();
+        String fileType = msg.getFileType();
+        String fileName = msg.getFileName();
 
         if (!TextUtils.isEmpty(imageUrl)) {
-            if (isImage(imageUrl)) {
-                ivImg.setVisibility(View.VISIBLE);
-                Glide.with(holder.itemView.getContext()).load(imageUrl).into(ivImg);
-            } else if (isAudio(imageUrl)) {
-                setupAudioPlayer(imageUrl, llAudio, btnPlay, sbProgress, tvDuration);
-            } else {
-                setupFileDownload(imageUrl, llFile, tvFile);
-            }
+            ivImg.setVisibility(View.VISIBLE);
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(android.R.color.darker_gray)
+                    .error(android.R.drawable.ic_menu_gallery)
+                    .into(ivImg);
         } else if (!TextUtils.isEmpty(fileUrl)) {
-            if (isImage(fileUrl)) {
+            if (isImage(fileUrl, fileType)) {
                 ivImg.setVisibility(View.VISIBLE);
-                Glide.with(holder.itemView.getContext()).load(fileUrl).into(ivImg);
-            } else if (isAudio(fileUrl)) {
+                Glide.with(holder.itemView.getContext())
+                        .load(fileUrl)
+                        .placeholder(android.R.color.darker_gray)
+                        .error(android.R.drawable.ic_menu_gallery)
+                        .into(ivImg);
+            } else if (isAudio(fileUrl, fileType)) {
                 setupAudioPlayer(fileUrl, llAudio, btnPlay, sbProgress, tvDuration);
             } else {
-                setupFileDownload(fileUrl, llFile, tvFile);
+                setupFileDownload(fileUrl, fileName, llFile, tvFile);
             }
         }
     }
@@ -123,13 +129,15 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     // ── Helper Checkers ──────────────────────────────────────────────────────
 
-    private boolean isImage(String url) {
+    private boolean isImage(String url, String mediaType) {
+        if (mediaType != null && mediaType.toLowerCase().startsWith("image/")) return true;
         if (url == null) return false;
         String lower = url.toLowerCase();
         return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp") || lower.endsWith(".gif");
     }
 
-    private boolean isAudio(String url) {
+    private boolean isAudio(String url, String mediaType) {
+        if (mediaType != null && mediaType.toLowerCase().startsWith("audio/")) return true;
         if (url == null) return false;
         String lower = url.toLowerCase();
         return lower.endsWith(".mp3") || lower.endsWith(".m4a") || lower.endsWith(".aac") || lower.endsWith(".wav") || lower.contains("/audio");
@@ -143,16 +151,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     // ── File downloads/viewing ────────────────────────────────────────────────
 
-    private void setupFileDownload(String url, View fileContainer, TextView fileNameTv) {
+    private void setupFileDownload(String url, String providedFileName, View fileContainer, TextView fileNameTv) {
         if (fileContainer == null) return;
         fileContainer.setVisibility(View.VISIBLE);
 
-        String fileName = "Attachment";
-        if (url != null && url.contains("/")) {
+        String fileName = !TextUtils.isEmpty(providedFileName) ? providedFileName : "Attachment";
+        if (TextUtils.isEmpty(providedFileName) && url != null && url.contains("/")) {
             fileName = url.substring(url.lastIndexOf("/") + 1);
             if (fileName.contains("?")) {
                 fileName = fileName.substring(0, fileName.indexOf("?"));
             }
+            try {
+                fileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8.name());
+            } catch (Exception ignored) {}
         }
         if (fileNameTv != null) fileNameTv.setText(fileName);
 

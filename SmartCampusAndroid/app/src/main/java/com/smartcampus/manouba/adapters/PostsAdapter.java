@@ -227,6 +227,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         String imageUrl = getString(post, "image_url");
         String fileUrl  = getString(post, "file_url");
+        String fileType = getString(post, "file_type");
         boolean isRepost = post.has("repost_of_detail") && !post.get("repost_of_detail").isJsonNull();
         if (holder.flPostMediaContainer != null) {
             holder.flPostMediaContainer.setVisibility(View.GONE);
@@ -243,28 +244,16 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             if (!fileUrl.isEmpty()) {
                 targetMediaUrl = fileUrl;
-                if (isVideoFile(fileUrl)) {
+                if (isVideoFile(fileUrl, fileType)) {
                     isVideo = true;
-                } else if (isImageFile(fileUrl)) {
+                } else if (isImageFile(fileUrl, fileType)) {
                     isImage = true;
                 } else {
                     isDocument = true;
                 }
             } else if (!imageUrl.isEmpty()) {
                 targetMediaUrl = imageUrl;
-                if (isVideoFile(imageUrl)) {
-                    isVideo = true;
-                } else if (isImageFile(imageUrl)) {
-                    isImage = true;
-                } else {
-                    if (imageUrl.toLowerCase().endsWith(".pdf") || imageUrl.toLowerCase().endsWith(".doc") || 
-                        imageUrl.toLowerCase().endsWith(".docx") || imageUrl.toLowerCase().endsWith(".xls") || 
-                        imageUrl.toLowerCase().endsWith(".xlsx")) {
-                        isDocument = true;
-                    } else {
-                        isImage = true;
-                    }
-                }
+                isImage = true;
             }
 
             if (!targetMediaUrl.isEmpty()) {
@@ -305,10 +294,13 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 } else if (isDocument) {
                     if (holder.llPostFileContainer != null) {
                         holder.llPostFileContainer.setVisibility(View.VISIBLE);
-                        String fileName = targetMediaUrl.substring(targetMediaUrl.lastIndexOf('/') + 1);
-                        try {
-                            fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
-                        } catch (Exception ignored) {}
+                        String fileName = getString(post, "file_name");
+                        if (fileName.isEmpty()) {
+                            fileName = targetMediaUrl.substring(targetMediaUrl.lastIndexOf('/') + 1);
+                            try {
+                                fileName = java.net.URLDecoder.decode(fileName, "UTF-8");
+                            } catch (Exception ignored) {}
+                        }
                         if (holder.tvPostFileName != null) {
                             holder.tvPostFileName.setText(fileName);
                         }
@@ -387,6 +379,7 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             // Show media for original post if exists
             String origImageUrl = getString(original, "image_url");
             String origFileUrl  = getString(original, "file_url");
+            String origFileType = getString(original, "file_type");
             if (holder.flRepostMediaContainer != null) {
                 String targetOrigUrl = "";
                 boolean origIsVideo = false;
@@ -395,28 +388,16 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
                 if (!origFileUrl.isEmpty()) {
                     targetOrigUrl = origFileUrl;
-                    if (isVideoFile(origFileUrl)) {
+                    if (isVideoFile(origFileUrl, origFileType)) {
                         origIsVideo = true;
-                    } else if (isImageFile(origFileUrl)) {
+                    } else if (isImageFile(origFileUrl, origFileType)) {
                         origIsImage = true;
                     } else {
                         origIsDocument = true;
                     }
                 } else if (!origImageUrl.isEmpty()) {
                     targetOrigUrl = origImageUrl;
-                    if (isVideoFile(origImageUrl)) {
-                        origIsVideo = true;
-                    } else if (isImageFile(origImageUrl)) {
-                        origIsImage = true;
-                    } else {
-                        if (origImageUrl.toLowerCase().endsWith(".pdf") || origImageUrl.toLowerCase().endsWith(".doc") || 
-                            origImageUrl.toLowerCase().endsWith(".docx") || origImageUrl.toLowerCase().endsWith(".xls") || 
-                            origImageUrl.toLowerCase().endsWith(".xlsx")) {
-                            origIsDocument = true;
-                        } else {
-                            origIsImage = true;
-                        }
-                    }
+                    origIsImage = true;
                 }
 
                 if (!targetOrigUrl.isEmpty()) {
@@ -700,14 +681,16 @@ public class PostsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return "";
     }
 
-    private boolean isVideoFile(String url) {
+    private boolean isVideoFile(String url, String mediaType) {
+        if (mediaType != null && mediaType.toLowerCase(Locale.getDefault()).startsWith("video/")) return true;
         if (url == null || url.isEmpty()) return false;
         String lower = url.toLowerCase(Locale.getDefault());
         return lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".webm") ||
                lower.endsWith(".3gp") || lower.endsWith(".avi") || lower.contains("/video/");
     }
 
-    private boolean isImageFile(String url) {
+    private boolean isImageFile(String url, String mediaType) {
+        if (mediaType != null && mediaType.toLowerCase(Locale.getDefault()).startsWith("image/")) return true;
         if (url == null || url.isEmpty()) return false;
         String lower = url.toLowerCase(Locale.getDefault());
         return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") ||

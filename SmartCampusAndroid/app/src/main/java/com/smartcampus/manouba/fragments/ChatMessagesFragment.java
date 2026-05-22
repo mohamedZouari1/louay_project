@@ -252,10 +252,14 @@ public class ChatMessagesFragment extends Fragment {
                 ? msg.get("image_url").getAsString() : null;
         String fileUrl = msg.has("file_url") && !msg.get("file_url").isJsonNull()
                 ? msg.get("file_url").getAsString() : null;
+        String fileName = msg.has("file_name") && !msg.get("file_name").isJsonNull()
+                ? msg.get("file_name").getAsString() : null;
+        String fileType = msg.has("file_type") && !msg.get("file_type").isJsonNull()
+                ? msg.get("file_type").getAsString() : null;
         String timestamp = msg.has("timestamp") && !msg.get("timestamp").isJsonNull()
                 ? msg.get("timestamp").getAsString() : "";
 
-        return new ChatMessage(id, content, formatTime(timestamp), sentByMe, imageUrl, fileUrl);
+        return new ChatMessage(id, content, formatTime(timestamp), sentByMe, imageUrl, fileUrl, fileName, fileType);
     }
 
     // ── Send messages ─────────────────────────────────────────────────────────
